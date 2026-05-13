@@ -293,7 +293,11 @@ Every new class must follow MaryPoppins pattern for its equivalent:
 
 No utility/helper/caster classes that don't exist in MaryPoppins. No separate PaginationLinks class — build links in controller.
 
+## Documented Deviations from MaryPoppins
+
+**ApiResponse + CsvResponse: split and injectable.** MaryPoppins has one static ApiResponse class for both JSON and CSV. We split into ApiResponse (JSON only) and CsvResponse (CSV with inline sanitization) — Single Responsibility. Both are injectable, not static. CsvSanitizer removed — sanitize() is a private method in CsvResponse. In exception handler (bootstrap/app.php) ApiResponse resolved via `app(ApiResponse::class)` since DI is not available.
+
 ## Rule Priority
 
-When MaryPoppins and laravel-dev rules conflict → **MaryPoppins wins** (this is their test assignment).
+When MaryPoppins and laravel-dev rules conflict → **MaryPoppins wins** unless documented deviation exists above.
 laravel-dev practices apply where MaryPoppins is silent (method structure, boolean naming, scopes, etc).

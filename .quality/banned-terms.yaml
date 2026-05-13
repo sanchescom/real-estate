@@ -1,0 +1,3 @@
+RealEstate:
+  - { banned: "house_price", canonical: "property_price", note: "BIS uses 'property prices' as the canonical term" }
+  - { banned: "raw_data", canonical: "observation", note: "An observation is a single data point in a time series" }

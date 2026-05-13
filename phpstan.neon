@@ -1,0 +1,41 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/ekino/phpstan-banned-code/extension.neon
+
+parameters:
+    level: max
+    paths:
+        - app/
+        - .quality/PHPStan/
+    excludePaths:
+        - app/Providers/
+        - .quality/PHPStan/BannedDomainTermsRule.php
+    treatPhpDocTypesAsCertain: false
+    checkModelProperties: true
+    banned_code:
+        nodes:
+            -
+                type: Expr_FuncCall
+                functions:
+                    - ray
+                    - unserialize
+
+services:
+    - class: Quality\PHPStan\BannedDomainTermsRule
+      arguments:
+          configPath: %currentWorkingDirectory%/.quality/banned-terms.yaml
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\NoAppHelperInDomainRule
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\CyclomaticComplexityRule
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\MethodLengthRule
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\MaxParameterCountRule
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\NoDomainGenericExceptionRule
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\MaxNestingLevelRule
+      tags: [phpstan.rules.rule]
+    - class: Quality\PHPStan\MaxPublicMethodCountRule
+      tags: [phpstan.rules.rule]
