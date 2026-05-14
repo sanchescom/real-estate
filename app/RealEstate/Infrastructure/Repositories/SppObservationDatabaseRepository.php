@@ -31,10 +31,7 @@ final readonly class SppObservationDatabaseRepository implements SppObservationR
         $data = $builder->offset($query->offset)
             ->limit($query->limit)
             ->get()
-            ->map(fn (SppObservation $obs): array => [
-                'period' => $obs->period,
-                'value' => (float) $obs->value,
-            ])
+            ->map(fn (SppObservation $obs): array => $this->mapObservation($obs))
             ->values()
             ->all();
 
@@ -78,6 +75,22 @@ final readonly class SppObservationDatabaseRepository implements SppObservationR
     {
         Cache::tags(['real-estate'])->flush();
         ResponseCache::clear();
+    }
+
+    /** @return array<string, mixed> */
+    private function mapObservation(SppObservation $obs): array
+    {
+        /** @var string $valueType */
+        $valueType = $obs->getRawOriginal('value_type');
+        /** @var string $unitMeasure */
+        $unitMeasure = $obs->getRawOriginal('unit_measure');
+
+        return [
+            'period' => $obs->period,
+            'value' => (float) $obs->value,
+            'type' => ValueType::from($valueType)->label(),
+            'metric' => UnitMeasure::from($unitMeasure)->label(),
+        ];
     }
 
     /**
