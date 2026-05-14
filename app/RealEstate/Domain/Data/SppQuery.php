@@ -18,4 +18,16 @@ final readonly class SppQuery
         public int $offset = 0,
         public int $limit = RealEstateConstants::DEFAULT_PAGE_LIMIT,
     ) {}
+
+    /** @return array<string, mixed> */
+    public function linkParams(): array
+    {
+        $params = array_filter(['sort' => $this->sort]);
+
+        foreach ($this->filters as $key => $value) {
+            $params["filter[{$key}]"] = $value;
+        }
+
+        return $params;
+    }
 }

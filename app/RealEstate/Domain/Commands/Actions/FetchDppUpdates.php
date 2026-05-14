@@ -13,6 +13,7 @@ use App\RealEstate\Domain\Commands\Contracts\SdmxApiSource;
 use App\RealEstate\Domain\Commands\Contracts\TempFileStorage;
 use App\RealEstate\Domain\Commands\ImportReporter;
 use App\RealEstate\Domain\Data\DppObservationData;
+use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\Domain\Contracts\CommandAction;
 use Psr\Log\LoggerInterface;
 
@@ -32,7 +33,10 @@ final readonly class FetchDppUpdates implements CommandAction
     public function __invoke(?string $country = null): void
     {
         $startTime = hrtime(true);
-        $csv = $this->apiSource->fetchDpp(['country' => $country ?? '', 'lastNObservations' => 5]);
+        $csv = $this->apiSource->fetchDpp([
+            'country' => $country ?? '',
+            'lastNObservations' => RealEstateConstants::FETCH_LAST_N_OBSERVATIONS,
+        ]);
         $tmpFile = $this->tempStorage->write('dpp_fetch_', $csv);
 
         try {
@@ -48,8 +52,11 @@ final readonly class FetchDppUpdates implements CommandAction
         $this->logger->info('DPP fetch sanity check', ['db_observations' => $this->store->observationCount()]);
 
         $this->reporter->report('DPP', [
-            'imported' => $imported, 'skipped' => $skipped, 'errors' => $errors,
-            'country_filter' => $country, 'duration_ms' => $durationMs,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'country_filter' => $country,
+            'duration_ms' => $durationMs,
         ]);
     }
 
@@ -75,19 +82,14 @@ final readonly class FetchDppUpdates implements CommandAction
             $this->logger->warning('DPP fetch: no series in DB. Run import-dpp first.');
         }
 
-        /** @var array<string, string> $countries */
-        $countries = [];
-
-        [$imported, $skipped, $errors] = $this->flusher->processChunked(new ChunkPipeline(
+        return $this->flusher->processChunked(new ChunkPipeline(
             items: $this->parser->parse($tmpFile),
             toRow: fn (DppObservationData $data): ?array => $this->buildObservationRow($data, $seriesIdMap),
-            onValid: function (DppObservationData $data) use (&$countries): void {
-                $countries[$data->countryCode] = $data->countryName;
-            },
+            toCountry: fn (DppObservationData $data): ?array => $data->countryCode !== ''
+                ? [$data->countryCode, $data->countryName]
+                : null,
             upsertFn: $this->store->upsertObservations(...),
         ));
-
-        return [$imported, $skipped, $errors, $countries];
     }
 
     /**

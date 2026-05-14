@@ -12,7 +12,7 @@ final readonly class SppCsvParser implements SppCsvParserContract
 {
     use ReadsBisCsv;
 
-    private const COLUMN_MAPPING = [
+    private const array COLUMN_MAPPING = [
         'REF_AREA' => 'Reference area',
         'VALUE' => 'Value',
         'UNIT_MEASURE' => 'Unit of measure',

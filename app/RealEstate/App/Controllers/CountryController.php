@@ -13,14 +13,17 @@ use App\RealEstate\Domain\Queries\Actions\ListCountries;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\App\ApiResponse;
 use App\Shared\App\CsvResponse;
+use App\Shared\App\Pagination;
+use App\Shared\App\PaginationContext;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class CountryController
+final readonly class CountryController
 {
     public function __construct(
-        private readonly ApiResponse $response,
-        private readonly CsvResponse $csv,
+        private ApiResponse $response,
+        private CsvResponse $csv,
+        private Pagination $pagination,
     ) {}
 
     public function index(
@@ -36,7 +39,9 @@ final class CountryController
 
         /** @var int $total */
         $total = $result['meta']['total'];
-        $links = $this->buildIndexLinks($query, $total);
+        $links = $this->pagination->links(new PaginationContext(
+            route('real-estate.countries'), $query->offset, $query->limit, $total, $query->linkParams(),
+        ));
 
         return $this->respond($result, $links);
     }
@@ -49,11 +54,7 @@ final class CountryController
         $result = $getCountrySpp($query);
 
         if ($result === null) {
-            return $this->response->error(
-                'Not Found',
-                404,
-                "Country '{$query->countryCode}' not found.",
-            );
+            return $this->response->error('Not Found', 404, "Country '{$query->countryCode}' not found.");
         }
 
         if ($request->validated('fmt') === 'csv') {
@@ -62,14 +63,16 @@ final class CountryController
 
         /** @var int $total */
         $total = $result['meta']['total'];
-        $links = $this->buildShowLinks($query, $total);
+        $links = $this->pagination->links(new PaginationContext(
+            route('real-estate.show', $query->countryCode), $query->offset, $query->limit, $total, $query->linkParams(),
+        ));
 
         return $this->respond($result, $links);
     }
 
     /**
      * @param  array{data: list<array<string, mixed>>, meta: array<string, mixed>}  $result
-     * @param  array<string, string|null>  $links
+     * @param  array{next: ?string, prev: ?string}  $links
      */
     private function respond(array $result, array $links): JsonResponse
     {
@@ -110,59 +113,5 @@ final class CountryController
             offset: (int) ($page['offset'] ?? 0),
             limit: (int) ($page['limit'] ?? RealEstateConstants::DEFAULT_PAGE_LIMIT),
         );
-    }
-
-    /**
-     * @return array<string, string|null>
-     */
-    private function buildIndexLinks(PaginationQuery $query, int $total): array
-    {
-        $base = '/api/v1/real-estate/countries';
-        $common = array_filter(['sort' => $query->sort]);
-
-        $next = $query->offset + $query->limit < $total
-            ? $base.'?'.http_build_query(array_merge($common, [
-                'page[offset]' => $query->offset + $query->limit,
-                'page[limit]' => $query->limit,
-            ]))
-            : null;
-
-        $prev = $query->offset > 0
-            ? $base.'?'.http_build_query(array_merge($common, [
-                'page[offset]' => max(0, $query->offset - $query->limit),
-                'page[limit]' => $query->limit,
-            ]))
-            : null;
-
-        return ['next' => $next, 'prev' => $prev];
-    }
-
-    /**
-     * @return array<string, string|null>
-     */
-    private function buildShowLinks(SppQuery $query, int $total): array
-    {
-        $base = "/api/v1/real-estate/{$query->countryCode}";
-        $common = array_filter(['sort' => $query->sort]);
-
-        foreach ($query->filters as $key => $value) {
-            $common["filter[{$key}]"] = $value;
-        }
-
-        $next = $query->offset + $query->limit < $total
-            ? $base.'?'.http_build_query(array_merge($common, [
-                'page[offset]' => $query->offset + $query->limit,
-                'page[limit]' => $query->limit,
-            ]))
-            : null;
-
-        $prev = $query->offset > 0
-            ? $base.'?'.http_build_query(array_merge($common, [
-                'page[offset]' => max(0, $query->offset - $query->limit),
-                'page[limit]' => $query->limit,
-            ]))
-            : null;
-
-        return ['next' => $next, 'prev' => $prev];
     }
 }

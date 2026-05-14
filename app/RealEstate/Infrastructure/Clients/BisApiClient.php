@@ -14,23 +14,21 @@ use Illuminate\Support\Facades\RateLimiter;
 
 final readonly class BisApiClient implements SdmxApiSource
 {
-    private const BASE_URL = 'https://stats.bis.org/api/v2/data/dataflow/BIS';
+    private const string BASE_URL = 'https://stats.bis.org/api/v2/data/dataflow/BIS';
 
-    private const CIRCUIT_KEY = 'circuit:bis-api';
+    private const string CIRCUIT_KEY = 'circuit:bis-api';
 
-    private const MAX_FAILURES = 5;
+    private const int MAX_FAILURES = 5;
 
-    private const DECAY_SECONDS = 60;
+    private const int DECAY_SECONDS = 60;
 
-    private const CONNECT_TIMEOUT = 5;
+    private const int CONNECT_TIMEOUT = 5;
 
-    private const READ_TIMEOUT = 30;
+    private const int READ_TIMEOUT = 30;
 
-    /** @var list<int> */
-    private const RETRY_DELAYS_MS = [500, 1500, 4000];
+    private const array RETRY_DELAYS_MS = [500, 1500, 4000];
 
-    /** @var list<int> */
-    private const RETRYABLE_STATUSES = [429, 502, 503];
+    private const array RETRYABLE_STATUSES = [429, 502, 503];
 
     public function fetchSpp(array $params = []): string
     {

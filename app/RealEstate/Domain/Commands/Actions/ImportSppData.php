@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 
 final readonly class ImportSppData implements CommandAction
 {
-    private const BULK_URL = 'https://data.bis.org/static/bulk/WS_SPP_csv_flat.zip';
+    private const string BULK_URL = 'https://data.bis.org/static/bulk/WS_SPP_csv_flat.zip';
 
     public function __construct(
         private BulkFileSource $fileSource,
@@ -34,35 +34,50 @@ final readonly class ImportSppData implements CommandAction
         $startTime = hrtime(true);
         $csvPath = $this->fileSource->download(self::BULK_URL);
 
-        /** @var array<string, string> $countries */
-        $countries = [];
-
-        [$imported, $skipped, $errors] = $this->flusher->processChunked(new ChunkPipeline(
+        $pipeline = new ChunkPipeline(
             items: $this->parser->parse($csvPath),
-            toRow: fn (SppObservationData $data): ?array => $data->isValid() ? $data->toUpsertRow() : null,
-            onValid: function (SppObservationData $data) use (&$countries): void {
-                $countries[$data->countryCode] = $data->countryName;
-            },
+            toRow: $this->buildToRow(),
+            toCountry: $this->buildToCountry(),
             upsertFn: $this->store->upsertObservations(...),
             dryRun: $dryRun,
-        ));
+        );
 
-        if (! $dryRun) {
-            $this->countryStore->upsertCountries($countries, 'SPP');
-            $this->store->invalidateCache();
-            $this->logSanityCheck();
-        }
+        [$imported, $skipped, $errors, $countries] = $this->flusher->processChunked($pipeline);
+
+        $this->finalize($dryRun, $countries);
 
         $this->reporter->reportUnlessDryRun('SPP', [
-            'imported' => $imported, 'skipped' => $skipped, 'errors' => $errors,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'errors' => $errors,
             'countries' => count($countries),
             'duration_ms' => (int) ((hrtime(true) - $startTime) / 1_000_000),
             'dry_run' => $dryRun,
         ], $dryRun);
     }
 
-    private function logSanityCheck(): void
+    /** @return \Closure(SppObservationData): ?array<string, mixed> */
+    private function buildToRow(): \Closure
     {
+        return fn (SppObservationData $d): ?array => $d->isValid() ? $d->toUpsertRow() : null;
+    }
+
+    /** @return \Closure(SppObservationData): ?array{string, string} */
+    private function buildToCountry(): \Closure
+    {
+        return fn (SppObservationData $d): ?array => $d->isValid() ? [$d->countryCode, $d->countryName] : null;
+    }
+
+    /** @param  array<string, string>  $countries */
+    private function finalize(bool $dryRun, array $countries): void
+    {
+        if ($dryRun) {
+            return;
+        }
+
+        $this->countryStore->upsertCountries($countries, 'SPP');
+        $this->store->invalidateCache();
+
         $this->logger->info('SPP import sanity check', [
             'db_countries' => $this->store->countryCount(),
             'db_observations' => $this->store->observationCount(),

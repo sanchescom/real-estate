@@ -21,27 +21,15 @@ final class StatusCommand extends Command
         $this->info('BIS Real Estate Status');
         $this->line('──────────────────────');
 
-        /** @var int $countries */
-        $countries = $status['countries'];
-        /** @var int $sppRecords */
-        $sppRecords = $status['spp_records'];
-        /** @var int $dppSeries */
-        $dppSeries = $status['dpp_series'];
-        /** @var int $dppRecords */
-        $dppRecords = $status['dpp_records'];
-
-        $this->table(
-            ['Metric', 'Value'],
-            [
-                ['Countries', number_format($countries)],
-                ['SPP records', number_format($sppRecords)],
-                ['SPP last import', $status['spp_last_import'] ?? 'never'],
-                ['DPP series', number_format($dppSeries)],
-                ['DPP records', number_format($dppRecords)],
-                ['DPP last import', $status['dpp_last_import'] ?? 'never'],
-                ['Next fetch', '25th of each month at 03:00/04:00'],
-            ],
-        );
+        $this->table(['Metric', 'Value'], [
+            ['Countries', number_format($status['countries'])],
+            ['SPP records', number_format($status['spp_records'])],
+            ['SPP last import', $status['spp_last_import'] ?? 'never'],
+            ['DPP series', number_format($status['dpp_series'])],
+            ['DPP records', number_format($status['dpp_records'])],
+            ['DPP last import', $status['dpp_last_import'] ?? 'never'],
+            ['Next fetch', '25th of each month at 03:00/04:00'],
+        ]);
 
         return self::SUCCESS;
     }

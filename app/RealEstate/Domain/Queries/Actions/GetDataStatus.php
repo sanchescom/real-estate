@@ -13,7 +13,7 @@ final readonly class GetDataStatus implements QueryAction
         private DataStatusRepository $repository,
     ) {}
 
-    /** @return array<string, mixed> */
+    /** @return array{countries: int, spp_records: int, spp_last_import: ?string, dpp_series: int, dpp_records: int, dpp_last_import: ?string} */
     public function __invoke(): array
     {
         return $this->repository->getStatus();

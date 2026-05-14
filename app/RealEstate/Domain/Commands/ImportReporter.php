@@ -27,7 +27,7 @@ final readonly class ImportReporter
     /**
      * Log completion and dispatch an event.
      *
-     * @param  array{imported: int, skipped: int, errors: int, duration_ms: int}  $stats
+     * @param  array{imported: int, skipped: int, errors: int, duration_ms: int, country_filter?: ?string}  $stats
      */
     public function report(string $dataset, array $stats): void
     {
@@ -38,7 +38,7 @@ final readonly class ImportReporter
     /**
      * Log completion and optionally dispatch an event (skipped during dry-run).
      *
-     * @param  array{imported: int, skipped: int, errors: int, duration_ms: int, dry_run?: bool}  $stats
+     * @param  array{imported: int, skipped: int, errors: int, countries: int, duration_ms: int, dry_run?: bool}  $stats
      */
     public function reportUnlessDryRun(string $dataset, array $stats, bool $dryRun): void
     {

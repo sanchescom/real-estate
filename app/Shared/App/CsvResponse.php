@@ -10,8 +10,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final readonly class CsvResponse
 {
-    /** @var list<string> */
-    private const DANGEROUS_PREFIXES = ['=', '+', '-', '@', "\t", "\r"];
+    private const array DANGEROUS_PREFIXES = ['=', '+', '-', '@', "\t", "\r"];
 
     /**
      * @param  iterable<int, array<string, mixed>|object>  $rows

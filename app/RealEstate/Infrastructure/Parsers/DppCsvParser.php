@@ -13,7 +13,7 @@ final readonly class DppCsvParser implements DppCsvParserContract
 {
     use ReadsBisCsv;
 
-    private const COLUMN_MAPPING = [
+    private const array COLUMN_MAPPING = [
         'FREQ' => 'Frequency',
         'REF_AREA' => 'Reference area',
         'COVERED_AREA' => 'Covered area',

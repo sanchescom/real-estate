@@ -12,14 +12,17 @@ use App\RealEstate\Domain\Queries\Actions\ListCountryDppSeries;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\App\ApiResponse;
 use App\Shared\App\CsvResponse;
+use App\Shared\App\Pagination;
+use App\Shared\App\PaginationContext;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-final class DetailedController
+final readonly class DetailedController
 {
     public function __construct(
-        private readonly ApiResponse $response,
-        private readonly CsvResponse $csv,
+        private ApiResponse $response,
+        private CsvResponse $csv,
+        private Pagination $pagination,
     ) {}
 
     public function show(
@@ -30,11 +33,7 @@ final class DetailedController
         $result = $getCountryDpp($query);
 
         if ($result === null) {
-            return $this->response->error(
-                'Not Found',
-                404,
-                "Country '{$query->countryCode}' not found.",
-            );
+            return $this->response->error('Not Found', 404, "Country '{$query->countryCode}' not found.");
         }
 
         if ($request->validated('fmt') === 'csv') {
@@ -43,7 +42,9 @@ final class DetailedController
 
         /** @var int $total */
         $total = $result['meta']['total'];
-        $links = $this->buildPaginationLinks($query, $total);
+        $links = $this->pagination->links(new PaginationContext(
+            route('real-estate.detailed', $query->countryCode), $query->offset, $query->limit, $total, $query->linkParams(),
+        ));
 
         return $this->response->data($result['data'], meta: $result['meta'], links: $links)
             ->header('Cache-Control', RealEstateConstants::CACHE_CONTROL_HEADER)
@@ -59,11 +60,7 @@ final class DetailedController
         $result = $listSeries($code);
 
         if ($result === null) {
-            return $this->response->error(
-                'Not Found',
-                404,
-                "Country '{$code}' not found.",
-            );
+            return $this->response->error('Not Found', 404, "Country '{$code}' not found.");
         }
 
         return $this->response->data($result['data'], meta: $result['meta'])
@@ -89,34 +86,5 @@ final class DetailedController
             offset: (int) ($page['offset'] ?? 0),
             limit: (int) ($page['limit'] ?? RealEstateConstants::DEFAULT_PAGE_LIMIT),
         );
-    }
-
-    /**
-     * @return array<string, string|null>
-     */
-    private function buildPaginationLinks(DppQuery $query, int $total): array
-    {
-        $base = "/api/v1/real-estate/{$query->countryCode}/detailed";
-        $common = array_filter(['sort' => $query->sort]);
-
-        foreach ($query->filters as $key => $value) {
-            $common["filter[{$key}]"] = $value;
-        }
-
-        $next = $query->offset + $query->limit < $total
-            ? $base.'?'.http_build_query(array_merge($common, [
-                'page[offset]' => $query->offset + $query->limit,
-                'page[limit]' => $query->limit,
-            ]))
-            : null;
-
-        $prev = $query->offset > 0
-            ? $base.'?'.http_build_query(array_merge($common, [
-                'page[offset]' => max(0, $query->offset - $query->limit),
-                'page[limit]' => $query->limit,
-            ]))
-            : null;
-
-        return ['next' => $next, 'prev' => $prev];
     }
 }

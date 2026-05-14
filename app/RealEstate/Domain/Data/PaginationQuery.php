@@ -14,6 +14,12 @@ final readonly class PaginationQuery
         public ?string $sort = null,
     ) {}
 
+    /** @return array<string, mixed> */
+    public function linkParams(): array
+    {
+        return array_filter(['sort' => $this->sort]);
+    }
+
     /**
      * Extract offset and limit from a validated page array.
      *

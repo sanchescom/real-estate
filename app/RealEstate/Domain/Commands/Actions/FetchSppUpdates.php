@@ -13,6 +13,7 @@ use App\RealEstate\Domain\Commands\Contracts\SppObservationStore;
 use App\RealEstate\Domain\Commands\Contracts\TempFileStorage;
 use App\RealEstate\Domain\Commands\ImportReporter;
 use App\RealEstate\Domain\Data\SppObservationData;
+use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\Domain\Contracts\CommandAction;
 use Psr\Log\LoggerInterface;
 
@@ -32,14 +33,14 @@ final readonly class FetchSppUpdates implements CommandAction
     public function __invoke(?string $country = null): void
     {
         $startTime = hrtime(true);
-        $csv = $this->apiSource->fetchSpp(['country' => $country ?? '', 'lastNObservations' => 5]);
+        $csv = $this->apiSource->fetchSpp([
+            'country' => $country ?? '',
+            'lastNObservations' => RealEstateConstants::FETCH_LAST_N_OBSERVATIONS,
+        ]);
         $tmpFile = $this->tempStorage->write('spp_fetch_', $csv);
 
-        /** @var array<string, string> $countries */
-        $countries = [];
-
         try {
-            [$imported, $skipped, $errors] = $this->processFile($tmpFile, $countries);
+            [$imported, $skipped, $errors, $countries] = $this->processFile($tmpFile);
         } finally {
             $this->tempStorage->delete($tmpFile);
         }
@@ -51,24 +52,25 @@ final readonly class FetchSppUpdates implements CommandAction
 
         $this->logger->info('SPP fetch sanity check', ['db_observations' => $this->store->observationCount()]);
         $this->reporter->report('SPP', [
-            'imported' => $imported, 'skipped' => $skipped, 'errors' => $errors,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'errors' => $errors,
             'country_filter' => $country,
             'duration_ms' => (int) ((hrtime(true) - $startTime) / 1_000_000),
         ]);
     }
 
     /**
-     * @param  array<string, string>  $countries  Populated by reference.
-     * @return array{int, int, int}
+     * @return array{int, int, int, array<string, string>}
      */
-    private function processFile(string $tmpFile, array &$countries): array
+    private function processFile(string $tmpFile): array
     {
         return $this->flusher->processChunked(new ChunkPipeline(
             items: $this->parser->parse($tmpFile),
             toRow: fn (SppObservationData $data): ?array => $data->isValid() ? $data->toUpsertRow() : null,
-            onValid: function (SppObservationData $data) use (&$countries): void {
-                $countries[$data->countryCode] = $data->countryName;
-            },
+            toCountry: fn (SppObservationData $data): ?array => $data->isValid()
+                ? [$data->countryCode, $data->countryName]
+                : null,
             upsertFn: $this->store->upsertObservations(...),
         ));
     }

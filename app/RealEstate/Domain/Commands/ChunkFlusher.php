@@ -42,18 +42,18 @@ final readonly class ChunkFlusher
     }
 
     /**
-     * Iterate a generator of items, accumulate valid rows into chunks, and flush each chunk.
+     * Iterate items, accumulate valid rows into chunks, flush, collect countries.
      *
      * @template T
      *
      * @param  ChunkPipeline<T>  $pipeline
-     * @return array{int, int, int} [imported, skipped, errors]
+     * @return array{int, int, int, array<string, string>} [imported, skipped, errors, countries]
      */
     public function processChunked(ChunkPipeline $pipeline): array
     {
         $imported = $skipped = $errors = 0;
-        /** @var list<array<string, mixed>> $chunk */
         $chunk = [];
+        $countries = [];
 
         foreach ($pipeline->items as $item) {
             $row = ($pipeline->toRow)($item);
@@ -62,21 +62,23 @@ final readonly class ChunkFlusher
                 continue;
             }
 
-            ($pipeline->onValid)($item);
+            $country = ($pipeline->toCountry)($item);
+            if ($country !== null) {
+                $countries[$country[0]] = $country[1];
+            }
             $chunk[] = $row;
 
-            if (count($chunk) >= RealEstateConstants::CHUNK_SIZE) {
-                $errors += $this->flush($pipeline->upsertFn, $chunk, $pipeline->dryRun);
-                $imported += count($chunk);
-                $chunk = [];
+            if (count($chunk) < RealEstateConstants::CHUNK_SIZE) {
+                continue;
             }
-        }
-
-        if ($chunk !== []) {
             $errors += $this->flush($pipeline->upsertFn, $chunk, $pipeline->dryRun);
             $imported += count($chunk);
+            $chunk = [];
         }
 
-        return [$imported - $errors, $skipped, $errors];
+        $errors += $this->flush($pipeline->upsertFn, $chunk, $pipeline->dryRun);
+        $imported += count($chunk);
+
+        return [$imported - $errors, $skipped, $errors, $countries];
     }
 }

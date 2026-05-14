@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 final readonly class LogPeakMemoryMiddleware
 {
     /** Log when peak memory exceeds this percentage of memory_limit. */
-    private const WARNING_THRESHOLD = 0.8;
+    private const float WARNING_THRESHOLD = 0.8;
 
     /** @param Closure(Request): Response $next */
     public function handle(Request $request, Closure $next): Response

@@ -20,7 +20,7 @@ enum CoveredArea: string
     case Region1 = 'R';
     case Region2 = 'S';
 
-    private const LABELS = [
+    private const array LABELS = [
         '0' => 'Whole country',
         '1' => 'Whole country excluding capital city',
         '2' => 'Capital city/biggest city/financial center',

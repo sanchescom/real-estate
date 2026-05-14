@@ -176,7 +176,7 @@ echo -e "${YELLOW}=== 5. LARAVEL-DEV RULES ===${NC}"
 echo ""
 
 check "No &\$variable references" \
-    "grep -rn '&\$' app/RealEstate/ --include='*.php'"
+    "grep -rn '&\\$' app/RealEstate/ --include='*.php'"
 
 check "No abort() calls" \
     "grep -rn '\babort(' app/ --include='*.php'"

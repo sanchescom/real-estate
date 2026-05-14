@@ -12,11 +12,23 @@ use ZipArchive;
 
 final readonly class BisFileClient implements BulkFileSource
 {
+    /** @var int */
+    private const int CONNECT_TIMEOUT = 5;
+
+    /** @var int */
+    private const int READ_TIMEOUT = 60;
+
+    /** @var int */
+    private const int RETRY_COUNT = 3;
+
+    /** @var int */
+    private const int RETRY_DELAY_MS = 1000;
+
     public function download(string $url): string
     {
-        $response = Http::connectTimeout(5)
-            ->timeout(60)
-            ->retry(3, 1000)
+        $response = Http::connectTimeout(self::CONNECT_TIMEOUT)
+            ->timeout(self::READ_TIMEOUT)
+            ->retry(self::RETRY_COUNT, self::RETRY_DELAY_MS)
             ->get($url);
 
         if ($response->failed()) {

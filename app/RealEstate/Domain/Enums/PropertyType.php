@@ -22,7 +22,7 @@ enum PropertyType: string
     case NonHoliday = 'R';
     case BigFlats = 'S';
 
-    private const LABELS = [
+    private const array LABELS = [
         '0' => 'All properties',
         '1' => 'All types of dwellings',
         '2' => 'Single-family houses',

@@ -17,7 +17,7 @@ use Psr\Log\LoggerInterface;
 
 final readonly class ImportDppData implements CommandAction
 {
-    private const BULK_URL = 'https://data.bis.org/static/bulk/WS_DPP_csv_flat.zip';
+    private const string BULK_URL = 'https://data.bis.org/static/bulk/WS_DPP_csv_flat.zip';
 
     public function __construct(
         private BulkFileSource $fileSource,
@@ -35,27 +35,24 @@ final readonly class ImportDppData implements CommandAction
         $csvPath = $this->fileSource->download(self::BULK_URL);
         $seriesIdMap = $this->prepareSeries($csvPath, $dryRun);
 
-        /** @var array<string, string> $countries */
-        $countries = [];
-
-        [$imported, $skipped, $errors] = $this->flusher->processChunked(new ChunkPipeline(
+        $pipeline = new ChunkPipeline(
             items: $this->parser->parse($csvPath),
             toRow: fn (DppObservationData $data): ?array => $this->buildRow($data, $seriesIdMap, $dryRun),
-            onValid: function (DppObservationData $data) use (&$countries): void {
-                $countries[$data->countryCode] = $data->countryName;
-            },
+            toCountry: fn (DppObservationData $data): ?array => $data->isValid()
+                ? [$data->countryCode, $data->countryName]
+                : null,
             upsertFn: $this->store->upsertObservations(...),
             dryRun: $dryRun,
-        ));
+        );
 
-        if (! $dryRun) {
-            $this->countryStore->upsertCountries($countries, 'DPP');
-            $this->store->invalidateCache();
-            $this->logSanityCheck();
-        }
+        [$imported, $skipped, $errors, $countries] = $this->flusher->processChunked($pipeline);
+
+        $this->finalize($dryRun, $countries);
 
         $this->reporter->reportUnlessDryRun('DPP', [
-            'imported' => $imported, 'skipped' => $skipped, 'errors' => $errors,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'errors' => $errors,
             'countries' => count($countries),
             'duration_ms' => (int) ((hrtime(true) - $startTime) / 1_000_000),
             'dry_run' => $dryRun,
@@ -99,8 +96,16 @@ final readonly class ImportDppData implements CommandAction
         ];
     }
 
-    private function logSanityCheck(): void
+    /** @param  array<string, string>  $countries */
+    private function finalize(bool $dryRun, array $countries): void
     {
+        if ($dryRun) {
+            return;
+        }
+
+        $this->countryStore->upsertCountries($countries, 'DPP');
+        $this->store->invalidateCache();
+
         $this->logger->info('DPP import sanity check', [
             'db_countries' => $this->store->countryCount(),
             'db_observations' => $this->store->observationCount(),
