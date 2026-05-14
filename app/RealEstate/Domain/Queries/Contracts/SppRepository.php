@@ -14,4 +14,6 @@ interface SppRepository
     public function findByCountry(SppQuery $query): array;
 
     public function countryExists(string $countryCode): bool;
+
+    public function countryName(string $countryCode): ?string;
 }

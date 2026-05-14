@@ -30,6 +30,7 @@ final readonly class GetCountrySpp implements QueryAction
             'data' => $result['data'],
             'meta' => [
                 'country_code' => $query->countryCode,
+                'country_name' => $this->repository->countryName($query->countryCode),
                 'type' => $query->filters['type'] ?? null,
                 'metric' => $query->filters['metric'] ?? null,
                 'base_year' => RealEstateConstants::SPP_BASE_YEAR,

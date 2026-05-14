@@ -43,6 +43,12 @@ final readonly class SppDatabaseRepository implements SppRepository
         return Country::where('code', $countryCode)->exists();
     }
 
+    public function countryName(string $countryCode): ?string
+    {
+        /** @var ?string */
+        return Country::where('code', $countryCode)->value('name');
+    }
+
     /**
      * @param  Builder<SppObservation>  $builder
      * @param  array<string, string>  $filters
