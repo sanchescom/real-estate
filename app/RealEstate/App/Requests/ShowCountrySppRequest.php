@@ -23,7 +23,15 @@ final class ShowCountrySppRequest extends FormRequest
             'filter.type' => ['nullable', 'string', Rule::in(['nominal', 'real'])],
             'filter.metric' => ['nullable', 'string', Rule::in(['index', 'yoy'])],
             'filter.from' => ['nullable', 'string', 'regex:/^\d{4}-Q[1-4]$/'],
-            'filter.to' => ['nullable', 'string', 'regex:/^\d{4}-Q[1-4]$/'],
+            'filter.to' => [
+                'nullable', 'string', 'regex:/^\d{4}-Q[1-4]$/',
+                function (string $attr, mixed $val, \Closure $fail): void {
+                    $from = $this->input('filter.from');
+                    if (is_string($from) && is_string($val) && $val < $from) {
+                        $fail('filter.to must be >= filter.from.');
+                    }
+                },
+            ],
             'sort' => ['nullable', 'string', Rule::in(['period', '-period', 'value', '-value'])],
             'page' => ['nullable', 'array'],
             'page.offset' => ['nullable', 'integer', 'min:0'],

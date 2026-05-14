@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Infrastructure\Repositories;
 
+use App\RealEstate\Domain\Contracts\DppRepository;
 use App\RealEstate\Domain\Data\DppQuery;
-use App\RealEstate\Domain\Queries\Contracts\DppRepository;
+use App\RealEstate\Domain\Data\DppSeriesData;
+use App\RealEstate\Domain\RealEstateConstants;
 use App\RealEstate\Infrastructure\Models\Country;
 use App\RealEstate\Infrastructure\Models\DppObservation;
 use App\RealEstate\Infrastructure\Models\DppSeries;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 final readonly class DppDatabaseRepository implements DppRepository
 {
+    #[\Override]
     public function findByCountry(DppQuery $query): array
     {
         $builder = $this->baseQuery($query->countryCode);
@@ -33,6 +38,7 @@ final readonly class DppDatabaseRepository implements DppRepository
         return ['data' => $data, 'total' => $total];
     }
 
+    #[\Override]
     public function seriesForCountry(string $countryCode): array
     {
         $list = DppSeries::where('country_code', $countryCode)
@@ -55,9 +61,104 @@ final readonly class DppDatabaseRepository implements DppRepository
         return $list;
     }
 
+    #[\Override]
     public function countryExists(string $countryCode): bool
     {
         return Country::where('code', $countryCode)->exists();
+    }
+
+    #[\Override]
+    public function upsertSeries(array $metadata): array
+    {
+        $rows = $this->buildSeriesRows($metadata);
+
+        foreach (array_chunk($rows, RealEstateConstants::SERIES_CHUNK_SIZE) as $chunk) {
+            DppSeries::upsert(
+                $chunk,
+                [
+                    'country_code', 'covered_area', 'property_type',
+                    'vintage', 'compiling_org', 'priced_unit', 'seasonal_adj',
+                ],
+                ['unit_measure', 'title', 'coverage', 'data_compilation', 'updated_at'],
+            );
+        }
+
+        return $this->getSeriesIdMap();
+    }
+
+    #[\Override]
+    public function upsertObservations(array $chunk): void
+    {
+        $now = now();
+        $stamped = array_map(
+            fn (array $row): array => $row + ['created_at' => $now, 'updated_at' => $now],
+            $chunk,
+        );
+
+        DB::transaction(function () use ($stamped): void {
+            DppObservation::upsert(
+                $stamped,
+                ['series_id', 'frequency', 'period'],
+                ['value', 'obs_status', 'updated_at'],
+            );
+        });
+    }
+
+    #[\Override]
+    public function getSeriesIdMap(): array
+    {
+        return DppSeries::query()
+            ->select([
+                'id', 'country_code', 'covered_area', 'property_type',
+                'vintage', 'compiling_org', 'priced_unit', 'seasonal_adj',
+            ])
+            ->get()
+            ->mapWithKeys(fn (DppSeries $series): array => [
+                implode('|', [
+                    $series->country_code,
+                    $series->covered_area,
+                    $series->property_type,
+                    $series->vintage,
+                    $series->compiling_org,
+                    $series->priced_unit,
+                    $series->seasonal_adj,
+                ]) => $series->id,
+            ])
+            ->all();
+    }
+
+    #[\Override]
+    public function invalidateCache(): void
+    {
+        Cache::tags(['real-estate'])->flush();
+    }
+
+    /**
+     * @param  array<string, DppSeriesData>  $metadata
+     * @return list<array<string, mixed>>
+     */
+    private function buildSeriesRows(array $metadata): array
+    {
+        $rows = [];
+        foreach ($metadata as $series) {
+            $rows[] = [
+                'country_code' => $series->countryCode,
+                'covered_area' => $series->coveredArea,
+                'property_type' => $series->propertyType,
+                'vintage' => $series->vintage,
+                'compiling_org' => $series->compilingOrg,
+                'priced_unit' => $series->pricedUnit,
+                'seasonal_adj' => $series->seasonalAdj,
+                'unit_measure' => $series->unitMeasure,
+                'title' => $series->title,
+                'coverage' => $series->coverage,
+                'data_compilation' => $series->dataCompilation,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        return $rows;
     }
 
     /**

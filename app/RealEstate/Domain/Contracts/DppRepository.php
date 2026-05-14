@@ -2,12 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\RealEstate\Domain\Commands\Contracts;
+namespace App\RealEstate\Domain\Contracts;
 
+use App\RealEstate\Domain\Data\DppQuery;
 use App\RealEstate\Domain\Data\DppSeriesData;
 
-interface DppDataStore
+interface DppRepository
 {
+    /**
+     * @return array{data: list<array<string, mixed>>, total: int}
+     */
+    public function findByCountry(DppQuery $query): array;
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function seriesForCountry(string $countryCode): array;
+
+    public function countryExists(string $countryCode): bool;
+
     /**
      * Upsert series from metadata and return the dimension_key => DB id map.
      *
@@ -29,16 +42,6 @@ interface DppDataStore
      * @return array<string, int>
      */
     public function getSeriesIdMap(): array;
-
-    /**
-     * Get count of DPP observation records.
-     */
-    public function observationCount(): int;
-
-    /**
-     * Get count of countries with DPP data.
-     */
-    public function countryCount(): int;
 
     /**
      * Invalidate any cached data after import.

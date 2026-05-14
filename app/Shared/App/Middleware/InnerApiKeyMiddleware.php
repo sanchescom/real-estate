@@ -29,7 +29,7 @@ final readonly class InnerApiKeyMiddleware
         $provided = $request->header('X-API-Key');
 
         if ($provided === null) {
-            return $this->response->error('Forbidden', 403, 'Invalid or missing API key.');
+            return $this->response->error('Unauthorized', 401, 'API key is required.');
         }
 
         $matched = false;
@@ -40,7 +40,7 @@ final readonly class InnerApiKeyMiddleware
         }
 
         if (! $matched) {
-            return $this->response->error('Forbidden', 403, 'Invalid or missing API key.');
+            return $this->response->error('Forbidden', 403, 'Invalid API key.');
         }
 
         return $next($request);

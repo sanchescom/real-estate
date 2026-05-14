@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\RealEstate\App\Console;
 
 use App\RealEstate\Domain\Commands\Actions\ImportSppData;
-use App\RealEstate\Domain\Commands\Contracts\SppObservationStore;
+use App\RealEstate\Infrastructure\Models\Country;
+use App\RealEstate\Infrastructure\Models\SppObservation;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Isolatable;
 
@@ -16,7 +17,7 @@ final class ImportSppCommand extends Command implements Isolatable
 
     protected $description = 'Import SPP (Selected Property Prices) data from BIS bulk CSV';
 
-    public function handle(ImportSppData $action, SppObservationStore $store): int
+    public function handle(ImportSppData $action): int
     {
         $dryRun = (bool) $this->option('dry-run');
 
@@ -33,8 +34,8 @@ final class ImportSppCommand extends Command implements Isolatable
         $this->table(
             ['Metric', 'Value'],
             [
-                ['Observations', number_format($store->observationCount())],
-                ['Countries', number_format($store->countryCount())],
+                ['Observations', number_format(SppObservation::count())],
+                ['Countries', number_format(Country::where('has_spp', true)->count())],
                 ['Mode', $dryRun ? 'DRY RUN' : 'LIVE'],
             ],
         );

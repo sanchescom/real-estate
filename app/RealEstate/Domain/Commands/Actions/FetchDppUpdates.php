@@ -6,12 +6,12 @@ namespace App\RealEstate\Domain\Commands\Actions;
 
 use App\RealEstate\Domain\Commands\ChunkFlusher;
 use App\RealEstate\Domain\Commands\ChunkPipeline;
-use App\RealEstate\Domain\Commands\Contracts\CountryStore;
 use App\RealEstate\Domain\Commands\Contracts\DppCsvParser;
-use App\RealEstate\Domain\Commands\Contracts\DppDataStore;
 use App\RealEstate\Domain\Commands\Contracts\SdmxApiSource;
 use App\RealEstate\Domain\Commands\Contracts\TempFileStorage;
 use App\RealEstate\Domain\Commands\ImportReporter;
+use App\RealEstate\Domain\Contracts\CountryRepository;
+use App\RealEstate\Domain\Contracts\DppRepository;
 use App\RealEstate\Domain\Data\DppObservationData;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\Domain\Contracts\CommandAction;
@@ -22,8 +22,8 @@ final readonly class FetchDppUpdates implements CommandAction
     public function __construct(
         private SdmxApiSource $apiSource,
         private DppCsvParser $parser,
-        private DppDataStore $store,
-        private CountryStore $countryStore,
+        private DppRepository $store,
+        private CountryRepository $countryStore,
         private ChunkFlusher $flusher,
         private ImportReporter $reporter,
         private LoggerInterface $logger,
@@ -48,8 +48,6 @@ final readonly class FetchDppUpdates implements CommandAction
         $this->persistCountries($countries, 'DPP');
 
         $durationMs = (int) ((hrtime(true) - $startTime) / 1_000_000);
-
-        $this->logger->info('DPP fetch sanity check', ['db_observations' => $this->store->observationCount()]);
 
         $this->reporter->report('DPP', [
             'imported' => $imported,

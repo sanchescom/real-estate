@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Domain\Queries\Actions;
 
+use App\RealEstate\Domain\Contracts\DppRepository;
 use App\RealEstate\Domain\Data\DppQuery;
-use App\RealEstate\Domain\Queries\Contracts\DppRepository;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\Domain\Contracts\QueryAction;
 
