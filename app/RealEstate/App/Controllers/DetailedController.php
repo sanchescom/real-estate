@@ -43,7 +43,8 @@ final readonly class DetailedController
         /** @var int $total */
         $total = $result['meta']['total'];
         $links = $this->pagination->links(new PaginationContext(
-            route('real-estate.detailed', $query->countryCode), $query->offset, $query->limit, $total, $query->linkParams(),
+            route('real-estate.detailed', $query->countryCode),
+            $query->offset, $query->limit, $total, $query->linkParams(),
         ));
 
         return $this->respond($result, $links);

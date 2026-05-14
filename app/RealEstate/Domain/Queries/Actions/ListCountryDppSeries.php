@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Domain\Queries\Actions;
 
-use App\RealEstate\Domain\Queries\Contracts\DppRepository;
+use App\RealEstate\Domain\Contracts\DppRepository;
 use App\Shared\Domain\Contracts\QueryAction;
 
 final readonly class ListCountryDppSeries implements QueryAction

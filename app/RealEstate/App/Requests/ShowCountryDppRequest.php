@@ -25,7 +25,15 @@ final class ShowCountryDppRequest extends FormRequest
             'filter.vintage' => ['nullable', 'string', 'max:1'],
             'filter.freq' => ['nullable', 'string', Rule::in(['Q', 'A', 'M', 'H'])],
             'filter.from' => ['nullable', 'string', 'max:10'],
-            'filter.to' => ['nullable', 'string', 'max:10'],
+            'filter.to' => [
+                'nullable', 'string', 'max:10',
+                function (string $attr, mixed $val, \Closure $fail): void {
+                    $from = $this->input('filter.from');
+                    if (is_string($from) && is_string($val) && $val < $from) {
+                        $fail('filter.to must be >= filter.from.');
+                    }
+                },
+            ],
             'sort' => ['nullable', 'string', Rule::in(['period', '-period', 'value', '-value'])],
             'page' => ['nullable', 'array'],
             'page.offset' => ['nullable', 'integer', 'min:0'],

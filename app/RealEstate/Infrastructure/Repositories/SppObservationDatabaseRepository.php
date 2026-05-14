@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Infrastructure\Repositories;
 
+use App\RealEstate\Domain\Contracts\SppObservationRepository;
 use App\RealEstate\Domain\Data\SppQuery;
 use App\RealEstate\Domain\Enums\UnitMeasure;
 use App\RealEstate\Domain\Enums\ValueType;
-use App\RealEstate\Domain\Queries\Contracts\SppRepository;
 use App\RealEstate\Infrastructure\Models\Country;
 use App\RealEstate\Infrastructure\Models\SppObservation;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
-final readonly class SppDatabaseRepository implements SppRepository
+final readonly class SppObservationDatabaseRepository implements SppObservationRepository
 {
+    #[\Override]
     public function findByCountry(SppQuery $query): array
     {
         $builder = SppObservation::query()
@@ -38,15 +41,41 @@ final readonly class SppDatabaseRepository implements SppRepository
         return ['data' => $data, 'total' => $total];
     }
 
+    #[\Override]
     public function countryExists(string $countryCode): bool
     {
         return Country::where('code', $countryCode)->exists();
     }
 
+    #[\Override]
     public function countryName(string $countryCode): ?string
     {
         /** @var ?string */
         return Country::where('code', $countryCode)->value('name');
+    }
+
+    #[\Override]
+    public function upsertObservations(array $chunk): void
+    {
+        $now = now();
+        $stamped = array_map(
+            fn (array $row): array => $row + ['created_at' => $now, 'updated_at' => $now],
+            $chunk,
+        );
+
+        DB::transaction(function () use ($stamped): void {
+            SppObservation::upsert(
+                $stamped,
+                ['country_code', 'value_type', 'unit_measure', 'period'],
+                ['value', 'obs_status', 'updated_at'],
+            );
+        });
+    }
+
+    #[\Override]
+    public function invalidateCache(): void
+    {
+        Cache::tags(['real-estate'])->flush();
     }
 
     /**

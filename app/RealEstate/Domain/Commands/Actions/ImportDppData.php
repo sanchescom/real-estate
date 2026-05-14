@@ -7,10 +7,10 @@ namespace App\RealEstate\Domain\Commands\Actions;
 use App\RealEstate\Domain\Commands\ChunkFlusher;
 use App\RealEstate\Domain\Commands\ChunkPipeline;
 use App\RealEstate\Domain\Commands\Contracts\BulkFileSource;
-use App\RealEstate\Domain\Commands\Contracts\CountryStore;
 use App\RealEstate\Domain\Commands\Contracts\DppCsvParser;
-use App\RealEstate\Domain\Commands\Contracts\DppDataStore;
 use App\RealEstate\Domain\Commands\ImportReporter;
+use App\RealEstate\Domain\Contracts\CountryRepository;
+use App\RealEstate\Domain\Contracts\DppRepository;
 use App\RealEstate\Domain\Data\DppObservationData;
 use App\Shared\Domain\Contracts\CommandAction;
 use Psr\Log\LoggerInterface;
@@ -22,8 +22,8 @@ final readonly class ImportDppData implements CommandAction
     public function __construct(
         private BulkFileSource $fileSource,
         private DppCsvParser $parser,
-        private DppDataStore $store,
-        private CountryStore $countryStore,
+        private DppRepository $store,
+        private CountryRepository $countryStore,
         private ChunkFlusher $flusher,
         private ImportReporter $reporter,
         private LoggerInterface $logger,
@@ -103,10 +103,5 @@ final readonly class ImportDppData implements CommandAction
 
         $this->countryStore->upsertCountries($countries, 'DPP');
         $this->store->invalidateCache();
-
-        $this->logger->info('DPP import sanity check', [
-            'db_countries' => $this->store->countryCount(),
-            'db_observations' => $this->store->observationCount(),
-        ]);
     }
 }

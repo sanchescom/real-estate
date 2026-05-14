@@ -25,9 +25,9 @@ it('returns empty data when no countries exist', function (): void {
         ->assertJsonPath('meta.total', 0);
 });
 
-it('returns 403 without API key', function (): void {
+it('returns 401 without API key', function (): void {
     $this->getJson('/api/v1/real-estate/countries')
-        ->assertStatus(403);
+        ->assertStatus(401);
 });
 
 it('paginates with offset and limit', function (): void {

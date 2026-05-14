@@ -135,10 +135,10 @@ check "QueryActions return non-void" \
     "find app/RealEstate/Domain/Queries/Actions -name '*.php' 2>/dev/null -exec grep '__invoke.*void' {} \;"
 
 check "Controllers are final" \
-    "find app/RealEstate/App/Controllers -name '*.php' 2>/dev/null -exec grep -L '^final class' {} \;"
+    "find app/RealEstate/App/Controllers -name '*.php' 2>/dev/null -exec grep -L '^final ' {} \;"
 
 check "Commands are final" \
-    "find app/RealEstate/App/Console -name '*.php' 2>/dev/null -exec grep -L '^final class' {} \;"
+    "find app/RealEstate/App/Console -name '*.php' 2>/dev/null -exec grep -L '^final ' {} \;"
 
 check "declare(strict_types=1) in all RealEstate files" \
     "find app/RealEstate -name '*.php' -exec grep -L 'declare(strict_types=1)' {} \;"

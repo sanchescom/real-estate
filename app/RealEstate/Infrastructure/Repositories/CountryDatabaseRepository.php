@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Infrastructure\Repositories;
 
+use App\RealEstate\Domain\Contracts\CountryRepository;
 use App\RealEstate\Domain\Data\PaginationQuery;
-use App\RealEstate\Domain\Queries\Contracts\CountryRepository;
 use App\RealEstate\Infrastructure\Models\Country;
 use Illuminate\Database\Eloquent\Builder;
 
 final readonly class CountryDatabaseRepository implements CountryRepository
 {
+    #[\Override]
     public function list(PaginationQuery $query): array
     {
         $builder = Country::query();
@@ -33,6 +34,25 @@ final readonly class CountryDatabaseRepository implements CountryRepository
 
         /** @var list<array<string, mixed>> $data */
         return ['data' => $data, 'total' => $total];
+    }
+
+    #[\Override]
+    public function upsertCountries(array $countries, string $dataset): void
+    {
+        $flag = $dataset === 'SPP' ? 'has_spp' : 'has_dpp';
+
+        $rows = [];
+        foreach ($countries as $code => $name) {
+            $rows[] = [
+                'code' => $code,
+                'name' => $name,
+                $flag => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        Country::upsert($rows, ['code'], ['name', $flag, 'updated_at']);
     }
 
     /**

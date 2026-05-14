@@ -6,27 +6,25 @@ namespace App\RealEstate\Domain\Commands\Actions;
 
 use App\RealEstate\Domain\Commands\ChunkFlusher;
 use App\RealEstate\Domain\Commands\ChunkPipeline;
-use App\RealEstate\Domain\Commands\Contracts\CountryStore;
 use App\RealEstate\Domain\Commands\Contracts\SdmxApiSource;
 use App\RealEstate\Domain\Commands\Contracts\SppCsvParser;
-use App\RealEstate\Domain\Commands\Contracts\SppObservationStore;
 use App\RealEstate\Domain\Commands\Contracts\TempFileStorage;
 use App\RealEstate\Domain\Commands\ImportReporter;
+use App\RealEstate\Domain\Contracts\CountryRepository;
+use App\RealEstate\Domain\Contracts\SppObservationRepository;
 use App\RealEstate\Domain\Data\SppObservationData;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\Domain\Contracts\CommandAction;
-use Psr\Log\LoggerInterface;
 
 final readonly class FetchSppUpdates implements CommandAction
 {
     public function __construct(
         private SdmxApiSource $apiSource,
         private SppCsvParser $parser,
-        private SppObservationStore $store,
-        private CountryStore $countryStore,
+        private SppObservationRepository $store,
+        private CountryRepository $countryStore,
         private ChunkFlusher $flusher,
         private ImportReporter $reporter,
-        private LoggerInterface $logger,
         private TempFileStorage $tempStorage,
     ) {}
 
@@ -50,7 +48,6 @@ final readonly class FetchSppUpdates implements CommandAction
             $this->store->invalidateCache();
         }
 
-        $this->logger->info('SPP fetch sanity check', ['db_observations' => $this->store->observationCount()]);
         $this->reporter->report('SPP', [
             'imported' => $imported,
             'skipped' => $skipped,

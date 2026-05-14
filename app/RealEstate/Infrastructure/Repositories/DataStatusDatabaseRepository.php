@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Infrastructure\Repositories;
 
-use App\RealEstate\Domain\Queries\Contracts\DataStatusRepository;
+use App\RealEstate\Domain\Contracts\DataStatusRepository;
 use App\RealEstate\Infrastructure\Models\Country;
 use App\RealEstate\Infrastructure\Models\DppObservation;
 use App\RealEstate\Infrastructure\Models\DppSeries;

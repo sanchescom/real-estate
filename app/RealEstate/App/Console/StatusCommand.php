@@ -29,7 +29,8 @@ final class StatusCommand extends Command
             ['DPP series', number_format($status['dpp_series'])],
             ['DPP records', number_format($status['dpp_records'])],
             ['DPP last import', $status['dpp_last_import'] ?? 'never'],
-            ['Next fetch', RealEstateConstants::FETCH_DAY_OF_MONTH.'th of each month at '.RealEstateConstants::FETCH_SPP_TIME.'/'.RealEstateConstants::FETCH_DPP_TIME],
+            ['Next fetch', RealEstateConstants::FETCH_DAY_OF_MONTH.'th of month at '
+                .RealEstateConstants::FETCH_SPP_TIME.'/'.RealEstateConstants::FETCH_DPP_TIME],
         ]);
 
         return self::SUCCESS;

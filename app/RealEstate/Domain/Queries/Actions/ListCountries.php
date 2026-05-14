@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Domain\Queries\Actions;
 
+use App\RealEstate\Domain\Contracts\CountryRepository;
 use App\RealEstate\Domain\Data\PaginationQuery;
-use App\RealEstate\Domain\Queries\Contracts\CountryRepository;
 use App\Shared\Domain\Contracts\QueryAction;
 
 final readonly class ListCountries implements QueryAction

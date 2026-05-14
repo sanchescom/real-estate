@@ -7,13 +7,12 @@ namespace App\RealEstate\Domain\Commands\Actions;
 use App\RealEstate\Domain\Commands\ChunkFlusher;
 use App\RealEstate\Domain\Commands\ChunkPipeline;
 use App\RealEstate\Domain\Commands\Contracts\BulkFileSource;
-use App\RealEstate\Domain\Commands\Contracts\CountryStore;
 use App\RealEstate\Domain\Commands\Contracts\SppCsvParser;
-use App\RealEstate\Domain\Commands\Contracts\SppObservationStore;
 use App\RealEstate\Domain\Commands\ImportReporter;
+use App\RealEstate\Domain\Contracts\CountryRepository;
+use App\RealEstate\Domain\Contracts\SppObservationRepository;
 use App\RealEstate\Domain\Data\SppObservationData;
 use App\Shared\Domain\Contracts\CommandAction;
-use Psr\Log\LoggerInterface;
 
 final readonly class ImportSppData implements CommandAction
 {
@@ -22,11 +21,10 @@ final readonly class ImportSppData implements CommandAction
     public function __construct(
         private BulkFileSource $fileSource,
         private SppCsvParser $parser,
-        private SppObservationStore $store,
-        private CountryStore $countryStore,
+        private SppObservationRepository $store,
+        private CountryRepository $countryStore,
         private ChunkFlusher $flusher,
         private ImportReporter $reporter,
-        private LoggerInterface $logger,
     ) {}
 
     public function __invoke(bool $dryRun = false): void
@@ -77,10 +75,5 @@ final readonly class ImportSppData implements CommandAction
 
         $this->countryStore->upsertCountries($countries, 'SPP');
         $this->store->invalidateCache();
-
-        $this->logger->info('SPP import sanity check', [
-            'db_countries' => $this->store->countryCount(),
-            'db_observations' => $this->store->observationCount(),
-        ]);
     }
 }

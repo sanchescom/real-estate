@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\RealEstate\Domain\Queries\Actions;
 
+use App\RealEstate\Domain\Contracts\SppObservationRepository;
 use App\RealEstate\Domain\Data\SppQuery;
-use App\RealEstate\Domain\Queries\Contracts\SppRepository;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\Shared\Domain\Contracts\QueryAction;
 
 final readonly class GetCountrySpp implements QueryAction
 {
     public function __construct(
-        private SppRepository $repository,
+        private SppObservationRepository $repository,
     ) {}
 
     /**
