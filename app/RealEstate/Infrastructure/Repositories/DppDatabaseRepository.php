@@ -14,6 +14,7 @@ use App\RealEstate\Infrastructure\Models\DppSeries;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 final readonly class DppDatabaseRepository implements DppRepository
 {
@@ -131,6 +132,7 @@ final readonly class DppDatabaseRepository implements DppRepository
     public function invalidateCache(): void
     {
         Cache::tags(['real-estate'])->flush();
+        ResponseCache::clear();
     }
 
     /**

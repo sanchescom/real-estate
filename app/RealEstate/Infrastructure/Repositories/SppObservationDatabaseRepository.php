@@ -13,6 +13,7 @@ use App\RealEstate\Infrastructure\Models\SppObservation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 final readonly class SppObservationDatabaseRepository implements SppObservationRepository
 {
@@ -76,6 +77,7 @@ final readonly class SppObservationDatabaseRepository implements SppObservationR
     public function invalidateCache(): void
     {
         Cache::tags(['real-estate'])->flush();
+        ResponseCache::clear();
     }
 
     /**
