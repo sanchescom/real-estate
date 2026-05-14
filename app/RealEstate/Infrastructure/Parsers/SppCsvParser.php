@@ -29,7 +29,14 @@ final readonly class SppCsvParser implements SppCsvParserContract
     {
         $records = $this->readObservationRecords($filePath, self::COLUMN_MAPPING);
 
-        foreach ($records as ['row' => $row, 'cols' => $cols, 'isBulk' => $isBulk]) {
+        foreach ($records as $entry) {
+            /** @var array<string, string> $row */
+            $row = $entry['row'];
+            /** @var array<string, string> $cols */
+            $cols = $entry['cols'];
+            /** @var bool $isBulk */
+            $isBulk = $entry['isBulk'];
+
             yield $this->buildObservation($row, $cols, $isBulk);
         }
     }
