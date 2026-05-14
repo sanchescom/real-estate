@@ -2,4 +2,7 @@
 
 declare(strict_types=1);
 
-// RealEstate routes — added as endpoints are implemented
+use App\RealEstate\App\Controllers\CountryController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/real-estate/countries', [CountryController::class, 'index']);

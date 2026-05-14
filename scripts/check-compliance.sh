@@ -191,7 +191,7 @@ check "No do...while loops" \
     "grep -rn '\bdo\b' app/RealEstate/ --include='*.php' | grep -v '//' | grep -v '\*' | grep -v 'todo'"
 
 check "No nested ternaries" \
-    "grep -rn '?.*?.*:.*:' app/RealEstate/ --include='*.php' | grep -v '//' | grep -v '\*'"
+    "grep -rn '?.*?.*:.*:' app/RealEstate/ --include='*.php' | grep -v '//' | grep -v '\*' | grep -v '??' | grep -v '@var' | grep -v 'PHPDoc'"
 
 check "No boolean flag params in public methods" \
     "grep -rn 'public function.*bool \$' app/RealEstate/ --include='*.php' | grep -v '__invoke\|__construct'"

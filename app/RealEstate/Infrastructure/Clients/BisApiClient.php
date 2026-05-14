@@ -108,10 +108,19 @@ final readonly class BisApiClient implements SdmxApiSource
             ->timeout(self::READ_TIMEOUT)
             ->retry(
                 self::RETRY_DELAYS_MS,
-                when: fn (\Throwable $e): bool => $e instanceof ConnectionException
-                    || ($e instanceof RequestException && in_array($e->response->status(), self::RETRYABLE_STATUSES, true)),
+                when: fn (\Throwable $e): bool => $this->isRetryable($e),
             )
             ->get($url, $query);
+    }
+
+    private function isRetryable(\Throwable $e): bool
+    {
+        if ($e instanceof ConnectionException) {
+            return true;
+        }
+
+        return $e instanceof RequestException
+            && in_array($e->response->status(), self::RETRYABLE_STATUSES, true);
     }
 
     private function assertCircuitClosed(): void
