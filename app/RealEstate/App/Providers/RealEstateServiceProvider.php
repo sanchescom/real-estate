@@ -17,6 +17,7 @@ use App\RealEstate\Domain\Commands\Contracts\SppCsvParser as SppCsvParserContrac
 use App\RealEstate\Domain\Commands\Contracts\SppObservationStore;
 use App\RealEstate\Domain\Commands\Contracts\TempFileStorage;
 use App\RealEstate\Domain\Queries\Contracts\CountryRepository;
+use App\RealEstate\Domain\Queries\Contracts\SppRepository;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\RealEstate\Infrastructure\Clients\BisApiClient;
 use App\RealEstate\Infrastructure\Clients\BisFileClient;
@@ -25,6 +26,7 @@ use App\RealEstate\Infrastructure\Parsers\SppCsvParser;
 use App\RealEstate\Infrastructure\Repositories\CountryDatabaseRepository;
 use App\RealEstate\Infrastructure\Repositories\CountryDatabaseStore;
 use App\RealEstate\Infrastructure\Repositories\DppDataDatabaseStore;
+use App\RealEstate\Infrastructure\Repositories\SppDatabaseRepository;
 use App\RealEstate\Infrastructure\Repositories\SppObservationDatabaseStore;
 use App\RealEstate\Infrastructure\TempFileSystemStorage;
 use App\Shared\App\Contracts\BoundedContextProvider;
@@ -46,6 +48,7 @@ final class RealEstateServiceProvider extends ServiceProvider implements Bounded
         $this->app->bind(DppDataStore::class, DppDataDatabaseStore::class);
         $this->app->bind(SdmxApiSource::class, BisApiClient::class);
         $this->app->bind(CountryRepository::class, CountryDatabaseRepository::class);
+        $this->app->bind(SppRepository::class, SppDatabaseRepository::class);
     }
 
     public function boot(): void
