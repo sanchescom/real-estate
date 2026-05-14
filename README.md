@@ -2,6 +2,10 @@
 
 REST API service for BIS (Bank for International Settlements) Residential Property Prices. Imports SPP and DPP datasets, serves via JSON API with filtering, pagination, sorting, and CSV export.
 
+## Postman Collection
+
+Import `docs/postman-collection.json` into Postman. Set variable `baseUrl` to your host (default `http://localhost:8081`). 22 pre-configured requests covering all endpoints, filters, CSV export, pagination, and error scenarios.
+
 ## Quick Start
 
 ```bash
@@ -18,14 +22,14 @@ docker compose exec app php artisan real-estate:import-dpp
 docker compose exec app php artisan real-estate:status
 ```
 
-API available at `http://localhost:8080`
+API available at `http://localhost:8081`
 
 ## Authentication
 
 All `/api/v1/real-estate/*` endpoints require `X-API-Key` header.
 
 ```bash
-curl -H "X-API-Key: your-key" http://localhost:8080/api/v1/real-estate/countries
+curl -H "X-API-Key: your-key" http://localhost:8081/api/v1/real-estate/countries
 ```
 
 Keys configured via `INNER_API_KEYS_REAL_ESTATE` env variable (comma-separated for rotation).
@@ -40,7 +44,7 @@ GET /api/v1/real-estate/countries
 
 ```bash
 curl -H "X-API-Key: key" \
-  "http://localhost:8080/api/v1/real-estate/countries?sort=name&page[limit]=10"
+  "http://localhost:8081/api/v1/real-estate/countries?sort=name&page[limit]=10"
 ```
 
 ```json
@@ -63,7 +67,7 @@ Filters: `filter[type]` (nominal, real), `filter[metric]` (index, yoy), `filter[
 
 ```bash
 curl -H "X-API-Key: key" \
-  "http://localhost:8080/api/v1/real-estate/US?filter[type]=nominal&filter[metric]=index&filter[from]=2020-Q1&filter[to]=2020-Q4"
+  "http://localhost:8081/api/v1/real-estate/US?filter[type]=nominal&filter[metric]=index&filter[from]=2020-Q1&filter[to]=2020-Q4"
 ```
 
 ```json
@@ -96,7 +100,7 @@ Filters: `filter[area]`, `filter[property_type]`, `filter[vintage]`, `filter[fre
 
 ```bash
 curl -H "X-API-Key: key" \
-  "http://localhost:8080/api/v1/real-estate/AU/detailed?filter[area]=0&filter[property_type]=1&page[limit]=3"
+  "http://localhost:8081/api/v1/real-estate/AU/detailed?filter[area]=0&filter[property_type]=1&page[limit]=3"
 ```
 
 ### DPP Available Series
@@ -109,7 +113,7 @@ Returns available DPP series with dimensions and unit of measure.
 
 ```bash
 curl -H "X-API-Key: key" \
-  "http://localhost:8080/api/v1/real-estate/AU/detailed/series"
+  "http://localhost:8081/api/v1/real-estate/AU/detailed/series"
 ```
 
 ### Health & Version
@@ -137,7 +141,7 @@ Add `?fmt=csv` to any data endpoint. CSV includes UTF-8 BOM and formula injectio
 
 ```bash
 curl -H "X-API-Key: key" \
-  "http://localhost:8080/api/v1/real-estate/US?fmt=csv&filter[type]=nominal&filter[metric]=index"
+  "http://localhost:8081/api/v1/real-estate/US?fmt=csv&filter[type]=nominal&filter[metric]=index"
 ```
 
 ## Caching

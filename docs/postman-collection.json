@@ -1,0 +1,348 @@
+{
+	"info": {
+		"name": "BIS Real Estate API",
+		"description": "REST API for BIS Residential Property Prices — SPP and DPP datasets",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8081",
+			"type": "string"
+		},
+		{
+			"key": "apiKey",
+			"value": "test-key-1",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-API-Key",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{apiKey}}",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Countries",
+			"item": [
+				{
+					"name": "List all countries",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/countries",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "countries"]
+						}
+					}
+				},
+				{
+					"name": "Countries — paginated",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/countries?page[offset]=0&page[limit]=10&sort=name",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "countries"],
+							"query": [
+								{"key": "page[offset]", "value": "0"},
+								{"key": "page[limit]", "value": "10"},
+								{"key": "sort", "value": "name"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Countries — CSV export",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/countries?fmt=csv",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "countries"],
+							"query": [
+								{"key": "fmt", "value": "csv"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "SPP (Selected Property Prices)",
+			"item": [
+				{
+					"name": "SPP — all data for US",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/US",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "US"]
+						}
+					}
+				},
+				{
+					"name": "SPP — nominal index 2020",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/US?filter[type]=nominal&filter[metric]=index&filter[from]=2020-Q1&filter[to]=2020-Q4",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "US"],
+							"query": [
+								{"key": "filter[type]", "value": "nominal"},
+								{"key": "filter[metric]", "value": "index"},
+								{"key": "filter[from]", "value": "2020-Q1"},
+								{"key": "filter[to]", "value": "2020-Q4"}
+							]
+						}
+					}
+				},
+				{
+					"name": "SPP — real YoY%",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/DE?filter[type]=real&filter[metric]=yoy",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "DE"],
+							"query": [
+								{"key": "filter[type]", "value": "real"},
+								{"key": "filter[metric]", "value": "yoy"}
+							]
+						}
+					}
+				},
+				{
+					"name": "SPP — sorted descending",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/US?filter[type]=nominal&filter[metric]=index&sort=-period&page[limit]=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "US"],
+							"query": [
+								{"key": "filter[type]", "value": "nominal"},
+								{"key": "filter[metric]", "value": "index"},
+								{"key": "sort", "value": "-period"},
+								{"key": "page[limit]", "value": "5"}
+							]
+						}
+					}
+				},
+				{
+					"name": "SPP — CSV export",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/US?fmt=csv&filter[type]=nominal&filter[metric]=index&filter[from]=2024-Q1&filter[to]=2024-Q4",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "US"],
+							"query": [
+								{"key": "fmt", "value": "csv"},
+								{"key": "filter[type]", "value": "nominal"},
+								{"key": "filter[metric]", "value": "index"},
+								{"key": "filter[from]", "value": "2024-Q1"},
+								{"key": "filter[to]", "value": "2024-Q4"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "DPP (Detailed Property Prices)",
+			"item": [
+				{
+					"name": "DPP — all data for Australia",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/AU/detailed?page[limit]=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "AU", "detailed"],
+							"query": [
+								{"key": "page[limit]", "value": "5"}
+							]
+						}
+					}
+				},
+				{
+					"name": "DPP — whole country, all dwellings",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/AU/detailed?filter[area]=0&filter[property_type]=1&page[limit]=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "AU", "detailed"],
+							"query": [
+								{"key": "filter[area]", "value": "0"},
+								{"key": "filter[property_type]", "value": "1"},
+								{"key": "page[limit]", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "DPP — new dwellings only",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/US/detailed?filter[vintage]=2&page[limit]=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "US", "detailed"],
+							"query": [
+								{"key": "filter[vintage]", "value": "2"},
+								{"key": "page[limit]", "value": "5"}
+							]
+						}
+					}
+				},
+				{
+					"name": "DPP — annual data (Norway since 1819)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/NO/detailed?filter[freq]=A&page[limit]=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "NO", "detailed"],
+							"query": [
+								{"key": "filter[freq]", "value": "A"},
+								{"key": "page[limit]", "value": "10"}
+							]
+						}
+					}
+				},
+				{
+					"name": "DPP — CSV export",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/AU/detailed?fmt=csv&filter[area]=2&filter[property_type]=3&page[limit]=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "AU", "detailed"],
+							"query": [
+								{"key": "fmt", "value": "csv"},
+								{"key": "filter[area]", "value": "2"},
+								{"key": "filter[property_type]", "value": "3"},
+								{"key": "page[limit]", "value": "20"}
+							]
+						}
+					}
+				},
+				{
+					"name": "DPP — available series for country",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/AU/detailed/series",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "AU", "detailed", "series"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Error Responses",
+			"item": [
+				{
+					"name": "404 — non-existent country",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/ZZ",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "ZZ"]
+						}
+					}
+				},
+				{
+					"name": "422 — invalid filter value",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/US?filter[type]=invalid",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "US"],
+							"query": [
+								{"key": "filter[type]", "value": "invalid"}
+							]
+						}
+					}
+				},
+				{
+					"name": "403 — missing API key",
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/countries",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "countries"]
+						}
+					}
+				},
+				{
+					"name": "422 — page limit too high",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/real-estate/countries?page[limit]=501",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "real-estate", "countries"],
+							"query": [
+								{"key": "page[limit]", "value": "501"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Infrastructure",
+			"item": [
+				{
+					"name": "Health check",
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "health"]
+						}
+					}
+				},
+				{
+					"name": "Version",
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/version",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "version"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
