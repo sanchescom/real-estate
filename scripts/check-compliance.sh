@@ -215,8 +215,8 @@ echo ""
 check "No lines > 120 chars in RealEstate" \
     "find app/RealEstate -name '*.php' -exec awk 'length > 120 {print FILENAME \":\" NR \": \" length \" chars\"}' {} \;"
 
-check "No lines > 120 chars in tests" \
-    "find tests -name '*.php' -exec awk 'length > 120 {print FILENAME \":\" NR \": \" length \" chars\"}' {} \;"
+check "No lines > 120 chars in Shared (excl HealthChecks)" \
+    "find app/Shared -name '*.php' -not -path '*/HealthChecks/*' -exec awk 'length > 120 {print FILENAME \":\" NR \": \" length \" chars\"}' {} \;"
 
 # ============================================================
 # SECTION 7: MANUAL CHECKLIST (reminder)
