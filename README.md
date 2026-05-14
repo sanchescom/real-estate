@@ -1,59 +1,247 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# BIS Real Estate Data
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API service for BIS (Bank for International Settlements) Residential Property Prices. Imports SPP and DPP datasets, serves via JSON API with filtering, pagination, sorting, and CSV export.
 
-## About Laravel
+## Quick Start
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+cp .env.example .env
+docker compose up -d
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Import data
+docker compose exec app php artisan real-estate:import-spp
+docker compose exec app php artisan real-estate:import-dpp
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Verify
+docker compose exec app php artisan real-estate:status
+```
 
-## Learning Laravel
+API available at `http://localhost:8080`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Authentication
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+All `/api/v1/real-estate/*` endpoints require `X-API-Key` header.
 
-## Laravel Sponsors
+```bash
+curl -H "X-API-Key: your-key" http://localhost:8080/api/v1/real-estate/countries
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Keys configured via `INNER_API_KEYS_REAL_ESTATE` env variable (comma-separated for rotation).
 
-### Premium Partners
+## Endpoints
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### List Countries
 
-## Contributing
+```
+GET /api/v1/real-estate/countries
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+curl -H "X-API-Key: key" \
+  "http://localhost:8080/api/v1/real-estate/countries?sort=name&page[limit]=10"
+```
 
-## Code of Conduct
+```json
+{
+  "data": [
+    {"code": "US", "name": "United States", "has_spp": true, "has_dpp": true}
+  ],
+  "meta": {"total": 64, "offset": 0, "limit": 10},
+  "links": {"next": "...?page[offset]=10&page[limit]=10", "prev": null}
+}
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### SPP Data (Selected Property Prices)
 
-## Security Vulnerabilities
+```
+GET /api/v1/real-estate/{code}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Filters: `filter[type]` (nominal, real), `filter[metric]` (index, yoy), `filter[from]` (YYYY-QN), `filter[to]` (YYYY-QN)
 
-## License
+```bash
+curl -H "X-API-Key: key" \
+  "http://localhost:8080/api/v1/real-estate/US?filter[type]=nominal&filter[metric]=index&filter[from]=2020-Q1&filter[to]=2020-Q4"
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```json
+{
+  "data": [
+    {"period": "2020-Q1", "value": 158.4799},
+    {"period": "2020-Q2", "value": 159.8064},
+    {"period": "2020-Q3", "value": 164.9151},
+    {"period": "2020-Q4", "value": 171.0508}
+  ],
+  "meta": {
+    "country_code": "US",
+    "type": "nominal",
+    "metric": "index",
+    "base_year": "2010 = 100",
+    "frequency": "quarterly",
+    "source": "BIS",
+    "total": 4
+  }
+}
+```
+
+### DPP Data (Detailed Property Prices)
+
+```
+GET /api/v1/real-estate/{code}/detailed
+```
+
+Filters: `filter[area]`, `filter[property_type]`, `filter[vintage]`, `filter[freq]` (Q, A, M, H), `filter[from]`, `filter[to]`
+
+```bash
+curl -H "X-API-Key: key" \
+  "http://localhost:8080/api/v1/real-estate/AU/detailed?filter[area]=0&filter[property_type]=1&page[limit]=3"
+```
+
+### DPP Available Series
+
+```
+GET /api/v1/real-estate/{code}/detailed/series
+```
+
+Returns available DPP series with dimensions and unit of measure.
+
+```bash
+curl -H "X-API-Key: key" \
+  "http://localhost:8080/api/v1/real-estate/AU/detailed/series"
+```
+
+### Health & Version
+
+```
+GET /api/health       # DB, Redis, Cache, Disk, Opcache checks
+GET /api/version      # App version, Laravel, PHP
+```
+
+## Query Parameters
+
+All data endpoints support:
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `page[offset]` | Skip N records | `page[offset]=50` |
+| `page[limit]` | Records per page (max 500) | `page[limit]=25` |
+| `sort` | Sort field, prefix `-` for desc | `sort=-period` |
+| `fmt` | Response format | `fmt=csv` |
+| `filter[...]` | Filter by field | `filter[type]=nominal` |
+
+## CSV Export
+
+Add `?fmt=csv` to any data endpoint. CSV includes UTF-8 BOM and formula injection protection.
+
+```bash
+curl -H "X-API-Key: key" \
+  "http://localhost:8080/api/v1/real-estate/US?fmt=csv&filter[type]=nominal&filter[metric]=index"
+```
+
+## Caching
+
+- `Cache-Control: max-age=86400` on all data endpoints
+- `ETag` header for conditional requests
+- Cache automatically invalidated after import
+
+## Artisan Commands
+
+| Command | Description |
+|---------|-------------|
+| `real-estate:import-spp` | Bulk import SPP from BIS ZIP/CSV |
+| `real-estate:import-dpp` | Bulk import DPP from BIS ZIP/CSV |
+| `real-estate:fetch-spp` | Incremental fetch via SDMX API |
+| `real-estate:fetch-dpp` | Incremental fetch via SDMX API |
+| `real-estate:status` | Show data counts and last import |
+
+Options: `--dry-run` (import), `--country=XX` (fetch), `--isolated` (mutex)
+
+## Scheduling
+
+Incremental fetch runs automatically on the 25th of each month:
+- `real-estate:fetch-spp` at 03:00
+- `real-estate:fetch-dpp` at 04:00
+
+## Observability
+
+- **Request tracing:** `X-Request-ID` header propagated through every request (auto-generated ULID if not provided)
+- **Structured logging:** JSON log format with hostname, request_id, user_id in every log entry (JsonLogFormatter)
+- **Memory monitoring:** LogPeakMemoryMiddleware warns when peak memory exceeds 80% of limit
+- **Status command:** `real-estate:status` shows current data counts, last import timestamps, next scheduled fetch
+- **Import events:** `ImportWasCompleted` domain event dispatched with metrics — can wire to alerting
+- **Health checks:** `GET /api/health` — Database, Redis, Cache, DiskSpace, Opcache
+
+## Pagination
+
+All list endpoints support offset-based pagination:
+
+- `page[offset]` — skip N records (default: 0)
+- `page[limit]` — records per page (default: 50, max: 500)
+- Response includes `links.next` and `links.prev` with all current filters preserved
+- ETag header is consistent across identical requests for cache validation
+
+## Security
+
+- API key authentication with multi-key rotation
+- Rate limiting: 100 req/min per key
+- Nginx rate limiting (`limit_req_zone`)
+- Max page size: 500 records
+- Period format validation, enum whitelists
+- CSV formula injection protection
+- Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`
+- No server version disclosure
+
+## Import Resilience
+
+- Idempotent: repeated import produces same result
+- Per-row validation before insert
+- Chunk transactions: failed chunk doesn't affect others
+- `--dry-run`: validate without writing
+- `--isolated`: prevents concurrent imports
+- Circuit breaker on BIS API (5 failures, 60s cooldown)
+- Retry with backoff: [500, 1500, 4000]ms
+- Import event dispatched for monitoring
+
+## Architecture
+
+DDD with CQS, based on MaryPoppins reference architecture.
+
+```
+app/
+├── RealEstate/              # Bounded context
+│   ├── App/                 # Controllers, Console, Requests, Routes
+│   ├── Domain/              # Commands, Queries, Data, Enums, Events
+│   └── Infrastructure/      # Models, Repositories, Clients, Parsers
+├── Shared/                  # ApiResponse, CsvResponse, Middleware
+└── Providers/               # AppServiceProvider (auto-discovery)
+```
+
+Key patterns:
+- Command actions: `__invoke(): void`, DI only, no facades in Domain
+- Query actions: `__invoke()` returns data, single DTO parameter
+- Controllers follow CubeController pattern: `buildQuery()` + `buildPaginationLinks()`
+- Contracts in Domain, implementations in Infrastructure
+- `filter[]` query parameter pattern for API filtering
+
+## Code Quality
+
+- PHPStan max level + custom rules (complexity, method length, params, nesting)
+- ekino/phpstan-banned-code
+- Laravel Pint with strict formatting
+- PHPCPD for duplication detection
+- Architecture tests (ArchTest + CqsTest)
+- Compliance script: 35+ automated checks
+
+## Deviations from MaryPoppins
+
+- **ApiResponse + CsvResponse:** injectable instances instead of static methods (Single Responsibility, testable)
+- **filter[] pattern:** follows MaryPoppins ListCubesRequest approach for all API filtering
+- **prev pagination link:** added (MaryPoppins only generates next)
+- **ETag + Cache-Control:** added on all data endpoints (not in MaryPoppins)
+- **CsvSanitizer:** inlined as private method in CsvResponse (not separate class)
+
+## Stack
+
+PHP 8.4, Laravel 12, MySQL 8.4, Redis 7, Pest, Docker
