@@ -141,7 +141,7 @@ final readonly class DppDatabaseRepository implements DppRepository
         return [
             'period' => $period,
             'value' => (float) $value,
-            'frequency' => $obs->getAttribute('frequency'),
+            'frequency' => $obs->getRawOriginal('frequency'),
             'covered_area' => $obs->getAttribute('covered_area'),
             'property_type' => $obs->getAttribute('property_type'),
             'vintage' => $obs->getAttribute('vintage'),

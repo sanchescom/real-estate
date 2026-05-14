@@ -117,20 +117,24 @@ final class CountryController
      */
     private function buildIndexLinks(PaginationQuery $query, int $total): array
     {
-        if ($query->offset + $query->limit >= $total) {
-            return ['next' => null, 'prev' => null];
-        }
+        $base = '/api/v1/real-estate/countries';
+        $common = array_filter(['sort' => $query->sort]);
 
-        $nextParams = array_filter([
-            'page[offset]' => $query->offset + $query->limit,
-            'page[limit]' => $query->limit,
-            'sort' => $query->sort,
-        ]);
+        $next = $query->offset + $query->limit < $total
+            ? $base.'?'.http_build_query(array_merge($common, [
+                'page[offset]' => $query->offset + $query->limit,
+                'page[limit]' => $query->limit,
+            ]))
+            : null;
 
-        return [
-            'next' => '/api/v1/real-estate/countries?'.http_build_query($nextParams),
-            'prev' => null,
-        ];
+        $prev = $query->offset > 0
+            ? $base.'?'.http_build_query(array_merge($common, [
+                'page[offset]' => max(0, $query->offset - $query->limit),
+                'page[limit]' => $query->limit,
+            ]))
+            : null;
+
+        return ['next' => $next, 'prev' => $prev];
     }
 
     /**
@@ -138,25 +142,27 @@ final class CountryController
      */
     private function buildShowLinks(SppQuery $query, int $total): array
     {
-        if ($query->offset + $query->limit >= $total) {
-            return ['next' => null, 'prev' => null];
-        }
-
-        $nextParams = array_filter([
-            'page[offset]' => $query->offset + $query->limit,
-            'page[limit]' => $query->limit,
-            'sort' => $query->sort,
-        ]);
+        $base = "/api/v1/real-estate/{$query->countryCode}";
+        $common = array_filter(['sort' => $query->sort]);
 
         foreach ($query->filters as $key => $value) {
-            $nextParams["filter[{$key}]"] = $value;
+            $common["filter[{$key}]"] = $value;
         }
 
-        $base = "/api/v1/real-estate/{$query->countryCode}";
+        $next = $query->offset + $query->limit < $total
+            ? $base.'?'.http_build_query(array_merge($common, [
+                'page[offset]' => $query->offset + $query->limit,
+                'page[limit]' => $query->limit,
+            ]))
+            : null;
 
-        return [
-            'next' => $base.'?'.http_build_query($nextParams),
-            'prev' => null,
-        ];
+        $prev = $query->offset > 0
+            ? $base.'?'.http_build_query(array_merge($common, [
+                'page[offset]' => max(0, $query->offset - $query->limit),
+                'page[limit]' => $query->limit,
+            ]))
+            : null;
+
+        return ['next' => $next, 'prev' => $prev];
     }
 }

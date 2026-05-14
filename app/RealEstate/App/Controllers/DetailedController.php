@@ -67,7 +67,8 @@ final class DetailedController
         }
 
         return $this->response->data($result['data'], meta: $result['meta'])
-            ->header('Cache-Control', RealEstateConstants::CACHE_CONTROL_HEADER);
+            ->header('Cache-Control', RealEstateConstants::CACHE_CONTROL_HEADER)
+            ->header('ETag', '"'.md5((string) json_encode($result['data'])).'"');
     }
 
     private function buildQuery(ShowCountryDppRequest $request): DppQuery
@@ -95,25 +96,27 @@ final class DetailedController
      */
     private function buildPaginationLinks(DppQuery $query, int $total): array
     {
-        if ($query->offset + $query->limit >= $total) {
-            return ['next' => null, 'prev' => null];
-        }
-
-        $nextParams = array_filter([
-            'page[offset]' => $query->offset + $query->limit,
-            'page[limit]' => $query->limit,
-            'sort' => $query->sort,
-        ]);
+        $base = "/api/v1/real-estate/{$query->countryCode}/detailed";
+        $common = array_filter(['sort' => $query->sort]);
 
         foreach ($query->filters as $key => $value) {
-            $nextParams["filter[{$key}]"] = $value;
+            $common["filter[{$key}]"] = $value;
         }
 
-        $base = "/api/v1/real-estate/{$query->countryCode}/detailed";
+        $next = $query->offset + $query->limit < $total
+            ? $base.'?'.http_build_query(array_merge($common, [
+                'page[offset]' => $query->offset + $query->limit,
+                'page[limit]' => $query->limit,
+            ]))
+            : null;
 
-        return [
-            'next' => $base.'?'.http_build_query($nextParams),
-            'prev' => null,
-        ];
+        $prev = $query->offset > 0
+            ? $base.'?'.http_build_query(array_merge($common, [
+                'page[offset]' => max(0, $query->offset - $query->limit),
+                'page[limit]' => $query->limit,
+            ]))
+            : null;
+
+        return ['next' => $next, 'prev' => $prev];
     }
 }
