@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Shared\App\ApiResponse;
+use App\Shared\App\Middleware\ETagMiddleware;
 use App\Shared\App\Middleware\InnerApiKeyMiddleware;
 use App\Shared\App\Middleware\LogPeakMemoryMiddleware;
 use App\Shared\App\Middleware\RequestIdMiddleware;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->append(RequestIdMiddleware::class);
         $middleware->append(LogPeakMemoryMiddleware::class);
+        $middleware->append(ETagMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->renderable(function (ValidationException $e): JsonResponse {
