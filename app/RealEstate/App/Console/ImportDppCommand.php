@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\RealEstate\App\Console;
 
 use App\RealEstate\Domain\Commands\Actions\ImportDppData;
-use App\RealEstate\Infrastructure\Models\Country;
-use App\RealEstate\Infrastructure\Models\DppObservation;
+use App\RealEstate\Domain\Contracts\DataStatusRepository;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Isolatable;
 
@@ -17,7 +16,7 @@ final class ImportDppCommand extends Command implements Isolatable
 
     protected $description = 'Import DPP (Detailed Property Prices) data from BIS bulk CSV';
 
-    public function handle(ImportDppData $action): int
+    public function handle(ImportDppData $action, DataStatusRepository $statusRepo): int
     {
         $dryRun = (bool) $this->option('dry-run');
 
@@ -29,13 +28,15 @@ final class ImportDppCommand extends Command implements Isolatable
 
         ($action)(dryRun: $dryRun);
 
+        $status = $statusRepo->getStatus();
+
         $this->newLine();
         $this->info('DPP Import Report:');
         $this->table(
             ['Metric', 'Value'],
             [
-                ['Observations', number_format(DppObservation::count())],
-                ['Countries', number_format(Country::where('has_dpp', true)->count())],
+                ['Observations', number_format($status['dpp_records'])],
+                ['Countries', number_format($status['countries'])],
                 ['Mode', $dryRun ? 'DRY RUN' : 'LIVE'],
             ],
         );

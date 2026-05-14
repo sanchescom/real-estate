@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\RealEstate\App\Console;
 
 use App\RealEstate\Domain\Commands\Actions\FetchSppUpdates;
-use App\RealEstate\Infrastructure\Models\Country;
-use App\RealEstate\Infrastructure\Models\SppObservation;
+use App\RealEstate\Domain\Contracts\DataStatusRepository;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\Isolatable;
 
@@ -17,7 +16,7 @@ final class FetchSppCommand extends Command implements Isolatable
 
     protected $description = 'Fetch latest SPP data from BIS SDMX API';
 
-    public function handle(FetchSppUpdates $action): int
+    public function handle(FetchSppUpdates $action, DataStatusRepository $statusRepo): int
     {
         $country = $this->option('country');
 
@@ -25,11 +24,13 @@ final class FetchSppCommand extends Command implements Isolatable
 
         ($action)(country: $country);
 
+        $status = $statusRepo->getStatus();
+
         $this->table(
             ['Metric', 'Value'],
             [
-                ['Observations in DB', number_format(SppObservation::count())],
-                ['Countries in DB', number_format(Country::where('has_spp', true)->count())],
+                ['Observations in DB', number_format($status['spp_records'])],
+                ['Countries in DB', number_format($status['countries'])],
             ],
         );
 
