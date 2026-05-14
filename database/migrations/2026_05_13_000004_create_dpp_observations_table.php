@@ -20,7 +20,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['series_id', 'frequency', 'period'], 'dpp_obs_composite_unique');
-            $table->index('series_id');
             $table->index('period');
         });
     }

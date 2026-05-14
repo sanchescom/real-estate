@@ -7,10 +7,15 @@ namespace App\RealEstate\Infrastructure\Parsers;
 use App\RealEstate\Domain\Commands\Contracts\SppCsvParser as SppCsvParserContract;
 use App\RealEstate\Domain\Data\SppObservationData;
 use Generator;
+use Psr\Log\LoggerInterface;
 
 final readonly class SppCsvParser implements SppCsvParserContract
 {
     use ReadsBisCsv;
+
+    public function __construct(
+        private LoggerInterface $logger,
+    ) {}
 
     private const array COLUMN_MAPPING = [
         'REF_AREA' => 'Reference area',
@@ -30,14 +35,18 @@ final readonly class SppCsvParser implements SppCsvParserContract
         $records = $this->readObservationRecords($filePath, self::COLUMN_MAPPING);
 
         foreach ($records as $entry) {
-            /** @var array<string, string> $row */
-            $row = $entry['row'];
-            /** @var array<string, string> $cols */
-            $cols = $entry['cols'];
-            /** @var bool $isBulk */
-            $isBulk = $entry['isBulk'];
+            try {
+                /** @var array<string, string> $row */
+                $row = $entry['row'];
+                /** @var array<string, string> $cols */
+                $cols = $entry['cols'];
+                /** @var bool $isBulk */
+                $isBulk = $entry['isBulk'];
 
-            yield $this->buildObservation($row, $cols, $isBulk);
+                yield $this->buildObservation($row, $cols, $isBulk);
+            } catch (\Throwable $e) {
+                $this->logger->warning('SPP CSV row parse failed', ['error' => $e->getMessage()]);
+            }
         }
     }
 

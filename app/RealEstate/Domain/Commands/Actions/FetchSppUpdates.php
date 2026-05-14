@@ -57,7 +57,7 @@ final readonly class FetchSppUpdates implements CommandAction
             'errors' => $errors,
             'country_filter' => $country,
             'duration_ms' => (int) ((hrtime(true) - $startTime) / 1_000_000),
-        ]);
+        ], new \DateTimeImmutable);
     }
 
     /**

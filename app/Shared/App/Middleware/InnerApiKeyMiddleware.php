@@ -28,7 +28,18 @@ final readonly class InnerApiKeyMiddleware
 
         $provided = $request->header('X-API-Key');
 
-        if ($provided === null || ! in_array($provided, $keys, true)) {
+        if ($provided === null) {
+            return $this->response->error('Forbidden', 403, 'Invalid or missing API key.');
+        }
+
+        $matched = false;
+        foreach ($keys as $key) {
+            if (is_string($key) && hash_equals($key, $provided)) {
+                $matched = true;
+            }
+        }
+
+        if (! $matched) {
             return $this->response->error('Forbidden', 403, 'Invalid or missing API key.');
         }
 

@@ -57,7 +57,7 @@ final readonly class FetchDppUpdates implements CommandAction
             'errors' => $errors,
             'country_filter' => $country,
             'duration_ms' => $durationMs,
-        ]);
+        ], new \DateTimeImmutable);
     }
 
     /**
@@ -113,8 +113,6 @@ final readonly class FetchDppUpdates implements CommandAction
             'period' => $data->period,
             'value' => $data->value,
             'obs_status' => $data->obsStatus,
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

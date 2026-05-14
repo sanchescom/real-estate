@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\RealEstate\Domain\Events;
 
 use App\Shared\Domain\Contracts\DomainEvent;
-use Carbon\CarbonImmutable;
 
 final readonly class ImportWasCompleted implements DomainEvent
 {
@@ -15,6 +14,6 @@ final readonly class ImportWasCompleted implements DomainEvent
         public int $skipped,
         public int $errors,
         public int $durationMs,
-        public CarbonImmutable $completedAt,
+        public \DateTimeImmutable $completedAt,
     ) {}
 }

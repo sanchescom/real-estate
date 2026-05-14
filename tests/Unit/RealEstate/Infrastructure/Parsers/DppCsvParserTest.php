@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\RealEstate\Infrastructure\Parsers\DppCsvParser;
+use Psr\Log\NullLogger;
 
 function createDppTestCsvFile(string $content): string
 {
@@ -22,7 +23,7 @@ it('parses DPP data rows correctly', function (): void {
         'dataflow,"BIS:WS_DPP(1.0)",I,"Q: Quarterly","US: United States","0: Whole country","1: All types of dwellings","0: All","0: Central bank","0: Per dwelling","0: Non seasonally adjusted",2020-Q1,150.1234,,,,,,,,,,,,,,,,,,,'."\n";
 
     $file = createDppTestCsvFile($csv);
-    $parser = new DppCsvParser;
+    $parser = new DppCsvParser(new NullLogger);
     $results = iterator_to_array($parser->parse($file));
     unlink($file);
 
@@ -38,7 +39,7 @@ it('parses metadata rows with unit_measure and title', function (): void {
         'dataflow,"BIS:WS_DPP(1.0)",I,,"AU: Australia","2: Capital city","3: Single-family houses - detached","0: All","2: Private sector","6: Pure price","0: Non seasonally adjusted",,,,,"A: All users",,,"Covers established houses in Sydney.",,,"4: Four",,,,"Australia - Residential property price index, all detached houses, Sydney",,,"779: Index, 2009 December = 100","0: Units",,,'."\n";
 
     $file = createDppTestCsvFile($csv);
-    $parser = new DppCsvParser;
+    $parser = new DppCsvParser(new NullLogger);
     $metadata = $parser->parseMetadata($file);
     unlink($file);
 
@@ -61,7 +62,7 @@ it('handles all 4 TIME_PERIOD formats', function (string $period): void {
         "dataflow,\"BIS:WS_DPP(1.0)\",I,\"Q: Quarterly\",\"US: United States\",\"0: Whole country\",\"1: All\",\"0: All\",\"0: Central bank\",\"0: Per dwelling\",\"0: Non seasonally adjusted\",{$period},100.0,,,,,,,,,,,,,,,,,,,\n";
 
     $file = createDppTestCsvFile($csv);
-    $parser = new DppCsvParser;
+    $parser = new DppCsvParser(new NullLogger);
     $results = iterator_to_array($parser->parse($file));
     unlink($file);
 

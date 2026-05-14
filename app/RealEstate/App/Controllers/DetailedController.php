@@ -46,9 +46,7 @@ final readonly class DetailedController
             route('real-estate.detailed', $query->countryCode), $query->offset, $query->limit, $total, $query->linkParams(),
         ));
 
-        return $this->response->data($result['data'], meta: $result['meta'], links: $links)
-            ->header('Cache-Control', RealEstateConstants::CACHE_CONTROL_HEADER)
-            ->header('ETag', '"'.md5((string) json_encode($result['data'])).'"');
+        return $this->respond($result, $links);
     }
 
     public function series(
@@ -63,9 +61,18 @@ final readonly class DetailedController
             return $this->response->error('Not Found', 404, "Country '{$code}' not found.");
         }
 
-        return $this->response->data($result['data'], meta: $result['meta'])
+        return $this->respond($result);
+    }
+
+    /**
+     * @param  array{data: list<array<string, mixed>>, meta: array<string, mixed>}  $result
+     * @param  array{next: ?string, prev: ?string}  $links
+     */
+    private function respond(array $result, array $links = ['next' => null, 'prev' => null]): JsonResponse
+    {
+        return $this->response->data($result['data'], meta: $result['meta'], links: $links)
             ->header('Cache-Control', RealEstateConstants::CACHE_CONTROL_HEADER)
-            ->header('ETag', '"'.md5((string) json_encode($result['data'])).'"');
+            ->header('ETag', '"'.md5((string) json_encode($result['data'], JSON_THROW_ON_ERROR)).'"');
     }
 
     private function buildQuery(ShowCountryDppRequest $request): DppQuery

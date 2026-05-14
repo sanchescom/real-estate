@@ -65,9 +65,15 @@ final readonly class DppDataDatabaseStore implements DppDataStore
     #[\Override]
     public function upsertObservations(array $chunk): void
     {
-        DB::transaction(function () use ($chunk): void {
+        $now = now();
+        $stamped = array_map(
+            fn (array $row): array => $row + ['created_at' => $now, 'updated_at' => $now],
+            $chunk,
+        );
+
+        DB::transaction(function () use ($stamped): void {
             DppObservation::upsert(
-                $chunk,
+                $stamped,
                 ['series_id', 'frequency', 'period'],
                 ['value', 'obs_status', 'updated_at'],
             );

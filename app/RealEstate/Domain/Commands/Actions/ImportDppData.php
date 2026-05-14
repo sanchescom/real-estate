@@ -56,7 +56,7 @@ final readonly class ImportDppData implements CommandAction
             'countries' => count($countries),
             'duration_ms' => (int) ((hrtime(true) - $startTime) / 1_000_000),
             'dry_run' => $dryRun,
-        ], $dryRun);
+        ], new \DateTimeImmutable);
     }
 
     /**
@@ -91,8 +91,6 @@ final readonly class ImportDppData implements CommandAction
             'period' => $data->period,
             'value' => $data->value,
             'obs_status' => $data->obsStatus,
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 

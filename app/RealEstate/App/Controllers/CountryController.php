@@ -78,7 +78,7 @@ final readonly class CountryController
     {
         return $this->response->data($result['data'], meta: $result['meta'], links: $links)
             ->header('Cache-Control', RealEstateConstants::CACHE_CONTROL_HEADER)
-            ->header('ETag', '"'.md5((string) json_encode($result['data'])).'"');
+            ->header('ETag', '"'.md5((string) json_encode($result['data'], JSON_THROW_ON_ERROR)).'"');
     }
 
     private function buildIndexQuery(ListCountriesRequest $request): PaginationQuery

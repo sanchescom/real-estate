@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\RealEstate\Domain\Commands\Contracts\BulkFileSource;
+use App\RealEstate\Domain\Events\ImportWasCompleted;
 use App\RealEstate\Infrastructure\Models\Country;
 use App\RealEstate\Infrastructure\Models\SppObservation;
+use Illuminate\Support\Facades\Event;
 
 function createSppTestCsv(): string
 {
@@ -62,6 +64,23 @@ it('is idempotent — repeated import does not create duplicates', function (): 
 
     $this->artisan('real-estate:import-spp')->assertSuccessful();
     expect(SppObservation::count())->toBe(3);
+
+    unlink($csvPath);
+});
+
+it('dispatches ImportWasCompleted event after import', function (): void {
+    Event::fake([ImportWasCompleted::class]);
+
+    $csvPath = createSppTestCsv();
+    mockBulkFileSource($csvPath);
+
+    $this->artisan('real-estate:import-spp')->assertSuccessful();
+
+    Event::assertDispatched(ImportWasCompleted::class, function (ImportWasCompleted $event): bool {
+        return $event->dataset === 'SPP'
+            && $event->imported === 3
+            && $event->errors === 0;
+    });
 
     unlink($csvPath);
 });

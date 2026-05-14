@@ -22,4 +22,9 @@ final class BisFileDownloadException extends RuntimeException
     {
         return new self("No CSV files found in ZIP from {$url}");
     }
+
+    public static function circuitOpen(int $retryAfter): self
+    {
+        return new self("Circuit breaker open — BIS file server unavailable. Retry after {$retryAfter}s.");
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\RealEstate\Infrastructure\Parsers\BisCodeParser;
 use App\RealEstate\Infrastructure\Parsers\SppCsvParser;
+use Psr\Log\NullLogger;
 
 it('parses code from CODE:Label format', function (): void {
     expect(BisCodeParser::parseCode('US: United States'))->toBe('US');
@@ -32,7 +33,7 @@ CSV;
     $tmpFile = tempnam(sys_get_temp_dir(), 'spp_test_');
     file_put_contents($tmpFile, $csv);
 
-    $parser = new SppCsvParser;
+    $parser = new SppCsvParser(new NullLogger);
     $results = iterator_to_array($parser->parse($tmpFile));
 
     unlink($tmpFile);
@@ -62,7 +63,7 @@ CSV;
     $tmpFile = tempnam(sys_get_temp_dir(), 'spp_test_');
     file_put_contents($tmpFile, $csv);
 
-    $parser = new SppCsvParser;
+    $parser = new SppCsvParser(new NullLogger);
     $results = iterator_to_array($parser->parse($tmpFile));
 
     unlink($tmpFile);
@@ -92,7 +93,7 @@ CSV;
     $tmpFile = tempnam(sys_get_temp_dir(), 'spp_test_');
     file_put_contents($tmpFile, $csv);
 
-    $parser = new SppCsvParser;
+    $parser = new SppCsvParser(new NullLogger);
     $results = iterator_to_array($parser->parse($tmpFile));
 
     unlink($tmpFile);

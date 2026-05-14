@@ -40,7 +40,7 @@ final readonly class ApiResponse
         foreach ($errors as $field => $messages) {
             foreach ($messages as $message) {
                 $formatted[] = [
-                    'status' => 422,
+                    'status' => '422',
                     'title' => 'Validation Error',
                     'detail' => $message,
                     'source' => ['pointer' => '/'.str_replace('.', '/', $field)],

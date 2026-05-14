@@ -55,8 +55,6 @@ final readonly class SppObservationData
             'period' => $this->period,
             'value' => $this->value,
             'obs_status' => $this->obsStatus,
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
     }
 }

@@ -53,7 +53,7 @@ final readonly class ImportSppData implements CommandAction
             'countries' => count($countries),
             'duration_ms' => (int) ((hrtime(true) - $startTime) / 1_000_000),
             'dry_run' => $dryRun,
-        ], $dryRun);
+        ], new \DateTimeImmutable);
     }
 
     /** @return \Closure(SppObservationData): ?array<string, mixed> */

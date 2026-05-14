@@ -15,9 +15,15 @@ final readonly class SppObservationDatabaseStore implements SppObservationStore
     #[\Override]
     public function upsertObservations(array $chunk): void
     {
-        DB::transaction(function () use ($chunk): void {
+        $now = now();
+        $stamped = array_map(
+            fn (array $row): array => $row + ['created_at' => $now, 'updated_at' => $now],
+            $chunk,
+        );
+
+        DB::transaction(function () use ($stamped): void {
             SppObservation::upsert(
-                $chunk,
+                $stamped,
                 ['country_code', 'value_type', 'unit_measure', 'period'],
                 ['value', 'obs_status', 'updated_at'],
             );

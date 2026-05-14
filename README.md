@@ -185,17 +185,21 @@ All list endpoints support offset-based pagination:
 ## Security
 
 - API key authentication with multi-key rotation
+- Constant-time key comparison (`hash_equals`) — prevents timing attacks
 - Rate limiting: 100 req/min per key
 - Nginx rate limiting (`limit_req_zone`)
 - Max page size: 500 records
 - Period format validation, enum whitelists
 - CSV formula injection protection
+- Zip-slip protection on bulk file extraction
 - Security headers: `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`
 - No server version disclosure
+- `JSON_THROW_ON_ERROR` on all json_encode calls
 
 ## Import Resilience
 
 - Idempotent: repeated import produces same result
+- Per-row try/catch in parsers — one bad CSV row doesn't crash import
 - Per-row validation before insert
 - Chunk transactions: failed chunk doesn't affect others
 - `--dry-run`: validate without writing
@@ -234,13 +238,25 @@ Key patterns:
 - Architecture tests (ArchTest + CqsTest)
 - Compliance script: 35+ automated checks
 
-## Deviations from MaryPoppins
+## Improvements over MaryPoppins
 
-- **ApiResponse + CsvResponse:** injectable instances instead of static methods (Single Responsibility, testable)
-- **filter[] pattern:** follows MaryPoppins ListCubesRequest approach for all API filtering
-- **prev pagination link:** added (MaryPoppins only generates next)
-- **ETag + Cache-Control:** added on all data endpoints (not in MaryPoppins)
-- **CsvSanitizer:** inlined as private method in CsvResponse (not separate class)
+Documented deviations where we improve on the reference architecture:
+
+| What | MaryPoppins | Our improvement |
+|------|-------------|-----------------|
+| ApiResponse | Static methods | Injectable instances (SRP, testable, mockable) |
+| CsvResponse | Part of ApiResponse | Separate class (Single Responsibility) |
+| CsvSanitizer | Separate static class | Inlined as private method in CsvResponse |
+| API key comparison | `in_array()` | `hash_equals()` — constant-time, prevents timing attacks |
+| Pagination links | Only `next` | Both `next` and `prev` |
+| Caching | No caching headers | `Cache-Control` + `ETag` on all data endpoints |
+| Pagination links | Hardcoded URLs | `route()` helper — full URLs, no hardcoded paths |
+| Domain purity | `now()` / `CarbonImmutable::now()` in Domain | Timestamps in Infrastructure, `\DateTimeImmutable` injected |
+| Events | `CarbonImmutable` in Domain event | `\DateTimeImmutable` — no Carbon dependency in Domain |
+| Zip extraction | No zip-slip protection | Path validation after extraction |
+| CSV parsers | No per-row error handling | try/catch per row — one bad row doesn't crash import |
+| PHP typed constants | Not used (PHP 8.2) | PHP 8.4 typed constants (`const string`, `const int`) |
+| JSON encoding | No error handling | `JSON_THROW_ON_ERROR` on all json_encode calls |
 
 ## Stack
 

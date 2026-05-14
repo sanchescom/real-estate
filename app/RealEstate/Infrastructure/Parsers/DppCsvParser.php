@@ -8,10 +8,15 @@ use App\RealEstate\Domain\Commands\Contracts\DppCsvParser as DppCsvParserContrac
 use App\RealEstate\Domain\Data\DppObservationData;
 use App\RealEstate\Domain\Data\DppSeriesData;
 use Generator;
+use Psr\Log\LoggerInterface;
 
 final readonly class DppCsvParser implements DppCsvParserContract
 {
     use ReadsBisCsv;
+
+    public function __construct(
+        private LoggerInterface $logger,
+    ) {}
 
     private const array COLUMN_MAPPING = [
         'FREQ' => 'Frequency',
@@ -37,14 +42,18 @@ final readonly class DppCsvParser implements DppCsvParserContract
     public function parse(string $filePath): Generator
     {
         foreach ($this->readObservationRecords($filePath, self::COLUMN_MAPPING) as $entry) {
-            /** @var array<string, string> $row */
-            $row = $entry['row'];
-            /** @var array<string, string> $cols */
-            $cols = $entry['cols'];
-            /** @var bool $isBulk */
-            $isBulk = $entry['isBulk'];
+            try {
+                /** @var array<string, string> $row */
+                $row = $entry['row'];
+                /** @var array<string, string> $cols */
+                $cols = $entry['cols'];
+                /** @var bool $isBulk */
+                $isBulk = $entry['isBulk'];
 
-            yield $this->buildObservation($row, $cols, $isBulk);
+                yield $this->buildObservation($row, $cols, $isBulk);
+            } catch (\Throwable $e) {
+                $this->logger->warning('DPP CSV row parse failed', ['error' => $e->getMessage()]);
+            }
         }
     }
 

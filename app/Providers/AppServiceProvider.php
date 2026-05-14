@@ -23,7 +23,7 @@ use Spatie\Health\Checks\Checks\UsedDiskSpaceCheck;
 use Spatie\Health\Facades\Health;
 use Symfony\Component\Finder\Finder;
 
-class AppServiceProvider extends ServiceProvider
+final class AppServiceProvider extends ServiceProvider
 {
     #[\Override]
     public function register(): void
