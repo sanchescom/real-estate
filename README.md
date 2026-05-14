@@ -146,9 +146,18 @@ curl -H "X-API-Key: key" \
 
 ## Caching
 
+Two layers of caching:
+
+**Server-side (spatie/laravel-responsecache):**
+- All GET responses cached in Redis
+- Different query parameters = different cache keys
+- Cache automatically invalidated after import (`ResponseCache::clear()`)
+- 5-7x faster responses on cache hit
+
+**Client-side (HTTP headers):**
 - `Cache-Control: max-age=86400` on all data endpoints
-- `ETag` header for conditional requests
-- Cache automatically invalidated after import
+- `ETag` header — different per data set, consistent across identical requests
+- `If-None-Match` support — returns `304 Not Modified` when data unchanged (via ETagMiddleware)
 
 ## Artisan Commands
 
@@ -261,6 +270,8 @@ Documented deviations where we improve on the reference architecture:
 | CSV parsers | No per-row error handling | try/catch per row — one bad row doesn't crash import |
 | PHP typed constants | Not used (PHP 8.2) | PHP 8.4 typed constants (`const string`, `const int`) |
 | JSON encoding | No error handling | `JSON_THROW_ON_ERROR` on all json_encode calls |
+| Response cache | No server-side caching | spatie/laravel-responsecache in Redis, 5-7x speedup |
+| ETag | No conditional requests | Full ETag with `If-None-Match` → 304 Not Modified |
 
 ## Stack
 

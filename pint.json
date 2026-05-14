@@ -12,5 +12,5 @@
         },
         "single_line_empty_body": true
     },
-    "exclude": ["bootstrap/cache", "storage", "vendor", "_ide_helper.php"]
+    "exclude": ["bootstrap/cache", "storage", "vendor", "_ide_helper.php", "config/responsecache.php"]
 }

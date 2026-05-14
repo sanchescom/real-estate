@@ -9,6 +9,7 @@ use App\RealEstate\Infrastructure\Models\Country;
 use App\RealEstate\Infrastructure\Models\SppObservation;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 final readonly class SppObservationDatabaseStore implements SppObservationStore
 {
@@ -46,5 +47,6 @@ final readonly class SppObservationDatabaseStore implements SppObservationStore
     public function invalidateCache(): void
     {
         Cache::tags(['real-estate'])->flush();
+        ResponseCache::clear();
     }
 }

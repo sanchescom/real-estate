@@ -33,5 +33,6 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="INNER_API_KEYS_REAL_ESTATE" value="test-key-1,test-key-2"/>
+        <env name="RESPONSE_CACHE_ENABLED" value="false"/>
     </php>
 </phpunit>

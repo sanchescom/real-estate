@@ -67,7 +67,7 @@ final class RealEstateServiceProvider extends ServiceProvider implements Bounded
 
     private function loadRoutes(): void
     {
-        Route::middleware(['api', 'inner-api:real-estate', 'throttle:api'])
+        Route::middleware(['api', 'inner-api:real-estate', 'throttle:api', 'cacheResponse'])
             ->prefix('api/v1')
             ->group(__DIR__.'/../api.php');
     }

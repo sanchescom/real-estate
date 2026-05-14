@@ -12,6 +12,7 @@ use App\RealEstate\Infrastructure\Models\DppObservation;
 use App\RealEstate\Infrastructure\Models\DppSeries;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 final readonly class DppDataDatabaseStore implements DppDataStore
 {
@@ -119,5 +120,6 @@ final readonly class DppDataDatabaseStore implements DppDataStore
     public function invalidateCache(): void
     {
         Cache::tags(['real-estate'])->flush();
+        ResponseCache::clear();
     }
 }

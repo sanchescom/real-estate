@@ -14,6 +14,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
+use Spatie\ResponseCache\Middlewares\CacheResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'inner-api' => InnerApiKeyMiddleware::class,
+            'cacheResponse' => CacheResponse::class,
         ]);
         $middleware->append(RequestIdMiddleware::class);
         $middleware->append(LogPeakMemoryMiddleware::class);
