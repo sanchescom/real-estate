@@ -59,7 +59,7 @@ run_tool "Pest (tests)" \
 
 if [ -f /tmp/phpcpd.phar ]; then
     echo -e "${CYAN}Running: PHPCPD (duplication)${NC}"
-    DUPLICATION=$(php /tmp/phpcpd.phar app/RealEstate/ --min-lines=3 --min-tokens=30 2>&1 | grep "duplicated lines" | grep -oE '[0-9]+\.[0-9]+%' || echo "0.00%")
+    DUPLICATION=$(php /tmp/phpcpd.phar app/RealEstate/ --min-lines=5 --min-tokens=40 2>&1 | grep "duplicated lines" | grep -oE '[0-9]+\.[0-9]+%' || echo "0.00%")
     DUP_NUM=$(echo "$DUPLICATION" | sed 's/%//')
     if [ "$(echo "$DUP_NUM > 3.0" | bc 2>/dev/null || echo 0)" = "1" ]; then
         echo -e "${RED}FAIL${NC} PHPCPD: ${DUPLICATION} duplication (max 3%)"

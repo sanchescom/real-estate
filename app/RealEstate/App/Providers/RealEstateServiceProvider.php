@@ -8,6 +8,7 @@ use App\RealEstate\App\Console\FetchDppCommand;
 use App\RealEstate\App\Console\FetchSppCommand;
 use App\RealEstate\App\Console\ImportDppCommand;
 use App\RealEstate\App\Console\ImportSppCommand;
+use App\RealEstate\App\Console\StatusCommand;
 use App\RealEstate\Domain\Commands\Contracts\BulkFileSource;
 use App\RealEstate\Domain\Commands\Contracts\CountryStore;
 use App\RealEstate\Domain\Commands\Contracts\DppCsvParser as DppCsvParserContract;
@@ -17,6 +18,8 @@ use App\RealEstate\Domain\Commands\Contracts\SppCsvParser as SppCsvParserContrac
 use App\RealEstate\Domain\Commands\Contracts\SppObservationStore;
 use App\RealEstate\Domain\Commands\Contracts\TempFileStorage;
 use App\RealEstate\Domain\Queries\Contracts\CountryRepository;
+use App\RealEstate\Domain\Queries\Contracts\DataStatusRepository;
+use App\RealEstate\Domain\Queries\Contracts\DppRepository;
 use App\RealEstate\Domain\Queries\Contracts\SppRepository;
 use App\RealEstate\Domain\RealEstateConstants;
 use App\RealEstate\Infrastructure\Clients\BisApiClient;
@@ -25,6 +28,8 @@ use App\RealEstate\Infrastructure\Parsers\DppCsvParser;
 use App\RealEstate\Infrastructure\Parsers\SppCsvParser;
 use App\RealEstate\Infrastructure\Repositories\CountryDatabaseRepository;
 use App\RealEstate\Infrastructure\Repositories\CountryDatabaseStore;
+use App\RealEstate\Infrastructure\Repositories\DataStatusDatabaseRepository;
+use App\RealEstate\Infrastructure\Repositories\DppDatabaseRepository;
 use App\RealEstate\Infrastructure\Repositories\DppDataDatabaseStore;
 use App\RealEstate\Infrastructure\Repositories\SppDatabaseRepository;
 use App\RealEstate\Infrastructure\Repositories\SppObservationDatabaseStore;
@@ -49,6 +54,8 @@ final class RealEstateServiceProvider extends ServiceProvider implements Bounded
         $this->app->bind(SdmxApiSource::class, BisApiClient::class);
         $this->app->bind(CountryRepository::class, CountryDatabaseRepository::class);
         $this->app->bind(SppRepository::class, SppDatabaseRepository::class);
+        $this->app->bind(DppRepository::class, DppDatabaseRepository::class);
+        $this->app->bind(DataStatusRepository::class, DataStatusDatabaseRepository::class);
     }
 
     public function boot(): void
@@ -73,6 +80,7 @@ final class RealEstateServiceProvider extends ServiceProvider implements Bounded
                 ImportDppCommand::class,
                 FetchSppCommand::class,
                 FetchDppCommand::class,
+                StatusCommand::class,
             ]);
         }
     }
